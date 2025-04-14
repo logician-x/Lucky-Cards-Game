@@ -1,39 +1,40 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
+import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+import { useAuth } from '../hooks/useAuth';
+import { StatusBar } from 'expo-status-bar';
+import { View, ActivityIndicator } from 'react-native';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const { user, loading } = useAuth(); // Get user and loading status
+  const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (loading) return;
+
+    const inTabsGroup = segments[0] === '(tabs)';
+
+    if (!user && inTabsGroup) {
+      router.replace('/login');
+    } else if (user && !inTabsGroup) {
+      router.replace('/(tabs)');
     }
-  }, [loaded]);
+  }, [user, segments, loading]);
 
-  if (!loaded) {
-    return null;
+  // 👇 THIS is the key: prevent any screen rendering until auth is done
+  
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#e91e63" />
+      </View>
+    );
   }
-
+  
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <>
+      <StatusBar hidden />
+      <Slot />
+    </>
   );
 }
