@@ -11,7 +11,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>🏠 Welcome to the Betting App</Text>
+      <Text style={styles.text}>🏠 Welcome to the Betting Home</Text>
       <Button title="Start" onPress={handleStart} />
     </View>
   );
