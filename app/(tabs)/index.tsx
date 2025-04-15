@@ -11,13 +11,10 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-<<<<<<< HEAD
-      <Text style={styles.text}>🏠 Welcome to my home </Text>
-=======
 
-      <Text style={styles.text}>🏠 Welcome to my app</Text>
+      <Text style={styles.text}>🏠 Welcome to my world</Text>
 
->>>>>>> e6b00e7633a125af6838c269a100b65c12fc804e
+
       <Button title="Start" onPress={handleStart} />
     </View>
   );
