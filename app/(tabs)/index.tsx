@@ -12,7 +12,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
 
-      <Text style={styles.text}>🏠 Welcome to ou world</Text>
+      <Text style={styles.text}>🏠 Welcome to Surat world,how are you ?</Text>
 
 
       <Button title="Start" onPress={handleStart} />
