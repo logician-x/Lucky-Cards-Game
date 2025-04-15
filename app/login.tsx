@@ -77,7 +77,7 @@ export default function LoginScreen() {
 
   const handleSettings = () => {
     // Handle settings action
-    alert('Settings pressed');
+    alert('Settings clicked');
   };
 
   return (
