@@ -215,7 +215,7 @@ export default function App() {
     
     // Check if the current player won
     if (bets[randIndex] > 0) {
-      const winnings = bets[randIndex] * 8; // 8x payout
+      const winnings = bets[randIndex] * 10; // 10X pay
       setWalletBalance(prev => prev + winnings);
       setIsWinner(true);
       
@@ -383,7 +383,7 @@ export default function App() {
     if (!isMenuOpen) return null;
     
     const menuItems = [
-      { id: 1, icon: '🏠', label: 'Exit to Lobby' },
+      { id: 1, icon: '🏠', label: 'Exit to home' },
       { id: 2, icon: '❓', label: 'How to Play' },
       { id: 3, icon: '⚙️', label: 'Settings' }
     ];
