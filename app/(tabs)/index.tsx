@@ -11,7 +11,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>🏠 Welcome to surat app</Text>
+      <Text style={styles.text}>🏠 Welcome to my app</Text>
       <Button title="Start" onPress={handleStart} />
     </View>
   );
