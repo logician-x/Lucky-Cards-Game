@@ -1,35 +1,14 @@
-// src/styles/theme.ts
+// src/hooks/useResponsiveStyles.ts
 import { useWindowDimensions, StyleSheet } from 'react-native';
+import { useAppContext } from '../contexts/AppContext';
+import { themes } from '../styles/theme';
 
-// Define theme colors
-export const themes = {
-  dark: {
-    background: '#121212',
-    card: 'rgba(18, 18, 18, 0.8)',
-    text: '#FFFFFF',
-    border: '#333333',
-    input: '#1e1e1e',
-    accent: '#FFD700',
-    overlay: 'rgba(0, 0, 0, 0.7)',
-    statusBar: 'light-content' as const,
-  },
-  light: {
-    background: '#F5F5F5',
-    card: 'rgba(255, 255, 255, 0.9)',
-    text: '#121212',
-    border: '#DDDDDD',
-    input: '#FFFFFF',
-    accent: '#FFD700',
-    overlay: 'rgba(255, 255, 255, 0.7)',
-    statusBar: 'dark-content' as const,
-  },
-};
-
-// Responsive styles hook
 export const useResponsiveStyles = () => {
   const { width, height } = useWindowDimensions();
+  const { theme } = useAppContext();
   const isLandscape = width > height;
-
+  const currentTheme = themes[theme];
+  
   return StyleSheet.create({
     backgroundImage: {
       flex: 1,
@@ -38,7 +17,7 @@ export const useResponsiveStyles = () => {
     },
     container: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      backgroundColor: currentTheme.overlay,
       padding: 24,
       position: 'relative',
     },
@@ -65,7 +44,7 @@ export const useResponsiveStyles = () => {
       flexDirection: isLandscape ? 'row' : 'column',
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 50,
+      marginTop: 50, // Make space for the settings button
     },
     gameImageContainer: {
       flex: isLandscape ? 1 : 0,
@@ -86,7 +65,7 @@ export const useResponsiveStyles = () => {
       flex: isLandscape ? 1 : 0,
       width: isLandscape ? '50%' : '100%',
       alignItems: 'center',
-      backgroundColor: 'rgba(18, 18, 18, 0.8)',
+      backgroundColor: currentTheme.card,
       padding: 24,
       borderRadius: 12,
       shadowColor: '#000',
@@ -98,13 +77,14 @@ export const useResponsiveStyles = () => {
     title: {
       fontSize: 28,
       fontWeight: 'bold',
-      color: '#FFD700',
+      color: currentTheme.accent,
       marginBottom: 16,
     },
     subtitle: {
-      color: '#aaa',
+      color: currentTheme.text,
       marginBottom: 24,
       fontSize: 16,
+      opacity: 0.7,
     },
     phoneInputContainer: {
       flexDirection: 'row',
@@ -115,13 +95,13 @@ export const useResponsiveStyles = () => {
     countryCode: {
       padding: 12,
       borderWidth: 1,
-      borderColor: '#333',
-      backgroundColor: '#1e1e1e',
+      borderColor: currentTheme.border,
+      backgroundColor: currentTheme.input,
       borderRadius: 8,
       marginRight: 8,
     },
     countryCodeText: {
-      color: '#aaa',
+      color: currentTheme.text,
     },
     phoneInput: {
       flex: 1,
@@ -135,9 +115,9 @@ export const useResponsiveStyles = () => {
     input: {
       width: '100%',
       borderWidth: 1,
-      borderColor: '#333',
-      backgroundColor: '#1e1e1e',
-      color: '#fff',
+      borderColor: currentTheme.border,
+      backgroundColor: currentTheme.input,
+      color: currentTheme.text,
       padding: 12,
       borderRadius: 8,
       marginBottom: 16,
@@ -149,9 +129,9 @@ export const useResponsiveStyles = () => {
     otpInput: {
       width: '100%',
       borderWidth: 1,
-      borderColor: '#333',
-      backgroundColor: '#1e1e1e',
-      color: '#fff',
+      borderColor: currentTheme.border,
+      backgroundColor: currentTheme.input,
+      color: currentTheme.text,
       padding: 16,
       borderRadius: 8,
       textAlign: 'center',
@@ -165,7 +145,7 @@ export const useResponsiveStyles = () => {
       top: 14,
     },
     button: {
-      backgroundColor: '#FFD700',
+      backgroundColor: currentTheme.accent,
       paddingVertical: 12,
       paddingHorizontal: 32,
       borderRadius: 8,
@@ -183,9 +163,81 @@ export const useResponsiveStyles = () => {
       padding: 8,
     },
     resendText: {
-      color: '#FFD700',
+      color: currentTheme.accent,
       fontSize: 14,
       fontWeight: '500',
+    },
+    languageSelectorContainer: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginBottom: 16,
+    },
+    languageButton: {
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 4,
+      marginLeft: 8,
+    },
+    activeLanguage: {
+      backgroundColor: currentTheme.accent,
+    },
+    languageText: {
+      color: currentTheme.text,
+      fontWeight: '500',
+    },
+    activeLanguageText: {
+      color: '#000',
+    },
+    footerContainer: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginTop: 24,
+    },
+    footerIcon: {
+      alignItems: 'center',
+    },
+    footerText: {
+      color: currentTheme.text,
+      marginTop: 4,
+      fontSize: 12,
+    },
+    settingsContainer: {
+      flex: 1,
+      backgroundColor: currentTheme.background,
+      padding: 24,
+    },
+    settingRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: currentTheme.border,
+    },
+    settingLabel: {
+      color: currentTheme.text,
+      fontSize: 18,
+    },
+    settingValue: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    settingOption: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 4,
+      marginLeft: 8,
+    },
+    activeOption: {
+      backgroundColor: currentTheme.accent,
+    },
+    optionText: {
+      color: currentTheme.text,
+    },
+    activeOptionText: {
+      color: '#000',
     },
   });
 };
