@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  ImageBackground, StyleSheet, View, Animated, 
-  Text, Image, TouchableOpacity, StatusBar, Dimensions,
-  findNodeHandle, UIManager, Alert 
+  ImageBackground, View, Animated, 
+  Text, Image, TouchableOpacity, StatusBar, Alert 
 } from 'react-native';
 import PhaseBanner from './PhaseBanner';
 import { styles } from '../../styles/gamescreen.styles';
@@ -25,14 +24,14 @@ import coin1 from '../../assets/images/coin1.png';
 
 // Item images array
 const itemImages = [
-  umbrella, football, sun, diva, ki, top,
-  rose, butterfly, cow, bucket, crow, rabbit
+  umbrella, football, sun, diva, cow, bucket,
+  ki, top, rose, butterfly, crow, rabbit
 ];
 
 // Item names for better reference
 const itemNames = [
-  'Umbrella', 'Football', 'Sun', 'Diya', 'Kite', 'Top',
-  'Rose', 'Butterfly', 'Cow', 'Bucket', 'Crow', 'Rabbit'
+  'Umbrella', 'Football', 'Sun', 'Diya','Cow', 'Bucket', 'Kite', 'Top',
+  'Rose', 'Butterfly',  'Crow', 'Rabbit'
 ];
 
 // Coin images - separate images for each denomination
@@ -536,6 +535,7 @@ export default function App() {
             </View>
             
             {/* Phase Banner */}
+            
             <PhaseBanner phase={gamePhase} />
           </View>
           
