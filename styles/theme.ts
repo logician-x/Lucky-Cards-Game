@@ -77,6 +77,8 @@ export const useResponsiveStyles = () => {
       width: isLandscape ? 300 : 220,
       overflow: 'hidden',
     },
+   
+    
     gameImage: {
       width: isLandscape ? 280 : 200,
       height: isLandscape ? 280 : 200,
@@ -95,6 +97,7 @@ export const useResponsiveStyles = () => {
       shadowRadius: 5,
       elevation: 6,
     },
+
     title: {
       fontSize: 28,
       fontWeight: 'bold',
@@ -187,5 +190,15 @@ export const useResponsiveStyles = () => {
       fontSize: 14,
       fontWeight: '500',
     },
+    greetingContainer: {
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    welcomeText: {
+      color: '#fff',
+      fontSize: 18,
+      marginTop: 4,
+    },
+    
   });
 };

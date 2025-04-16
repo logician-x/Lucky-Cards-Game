@@ -37,7 +37,7 @@ export const LoginScreen: React.FC = () => {
 
   const handleSettingsPress = () => {
     playButtonSound();
-    router.push('../(tabs)/settings');
+    router.push('/settings');
   };
 
   const handleContinue = async () => {
@@ -93,11 +93,10 @@ export const LoginScreen: React.FC = () => {
               style={styles.gameImage}
             />
           </View>
-
           <View style={styles.formContainer}>
             <LanguageSelector />
             <Text style={styles.title}>{t.login}</Text>
-
+            
             <View style={styles.phoneInputContainer}>
               <View style={styles.countryCode}>
                 <Text style={styles.countryCodeText}>+91</Text>
@@ -138,7 +137,6 @@ export const LoginScreen: React.FC = () => {
               <Text style={styles.buttonText}>{t.continueText}</Text>
             </TouchableOpacity>
 
-            <FooterIcons />
           </View>
         </View>
       </KeyboardAvoidingView>
