@@ -361,5 +361,11 @@ export const styles = StyleSheet.create({
       color: 'white',
       fontSize: 20,
       fontWeight: 'bold',
-    }
+    },
+    highlightedItem: {
+  borderWidth: 3,
+  borderColor: 'gold',
+  borderRadius: 12,
+  backgroundColor: '#fff7cc',
+},
   });
