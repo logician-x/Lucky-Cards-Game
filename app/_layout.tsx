@@ -3,9 +3,10 @@ import { useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
+import { AppProvider } from '../contexts/AppContext'; // ✅ Import AppProvider
 
 export default function RootLayout() {
-  const { user, loading } = useAuth(); // Get user and loading status
+  const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -21,8 +22,6 @@ export default function RootLayout() {
     }
   }, [user, segments, loading]);
 
-  // 👇 THIS is the key: prevent any screen rendering until auth is done
-  
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -30,11 +29,11 @@ export default function RootLayout() {
       </View>
     );
   }
-  
+
   return (
-    <>
+    <AppProvider> {/* ✅ Wrap Slot inside AppProvider */}
       <StatusBar hidden />
       <Slot />
-    </>
+    </AppProvider>
   );
 }

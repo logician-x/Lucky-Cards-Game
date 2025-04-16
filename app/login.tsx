@@ -1,167 +1,149 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   ImageBackground,
-  Animated,
-  Easing,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
 import { useRouter } from 'expo-router';
-import { sendOTP } from '../services/authService';
-import { firebaseApp } from '../firebase/firebaseConfig';
-import { useResponsiveStyles } from '../styles/theme';
-import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 
-export default function LoginScreen() {
-  const [phone, setPhone] = useState('');
+import { sendOTP } from '../services/authService';
+import { auth } from '../firebase/firebaseConfig';
+
+import { useAppContext } from '../contexts/AppContext';
+import { useResponsiveStyles } from '../styles/theme';
+import { translations } from '../localization/translations';
+import { LanguageSelector } from '../components/LanguageSelector';
+import { FooterIcons } from '../components/FooterIcons';
+
+export const LoginScreen: React.FC = () => {
+  const router = useRouter();
+  const { language, playButtonSound } = useAppContext();
+  const styles = useResponsiveStyles();
+  const t = translations[language];
+
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
   const recaptchaVerifier = useRef<FirebaseRecaptchaVerifierModal>(null);
-  const router = useRouter();
-  const styles = useResponsiveStyles();
-  
-  // Animation value for zooming effect
-  const animatedScale = useRef(new Animated.Value(1)).current;
 
-  // Create animation sequence for zoom in/out effect
-  useEffect(() => {
-    const startAnimation = () => {
-      Animated.sequence([
-        // Zoom in
-        Animated.timing(animatedScale, {
-          toValue: 1.15,
-          duration: 5000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        // Zoom out
-        Animated.timing(animatedScale, {
-          toValue: 1,
-          duration: 5000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        })
-      ]).start(() => startAnimation()); // Restart animation when complete
-    };
+  const handleSettingsPress = () => {
+    playButtonSound();
+    router.push('../(tabs)/settings');
+  };
 
-    startAnimation();
-    
-    return () => {
-      // Clean up animation when component unmounts
-      animatedScale.stopAnimation();
-    };
-  }, []);
+  const handleContinue = async () => {
+    playButtonSound();
 
-  const handleNext = async () => {
-    if (phone.length < 10 || password.length < 4) {
-      alert('Please enter a valid phone number and password.');
+    const fullPhoneNumber = '+91' + phoneNumber;
+
+    if (phoneNumber.length !== 10 || !/^[6-9]\d{9}$/.test(phoneNumber)) {
+      Alert.alert('Invalid Number', 'Please enter a valid 10-digit Indian phone number.');
       return;
     }
 
     try {
-      const fullPhone = `+91${phone}`;
-      const verificationId = await sendOTP(fullPhone, recaptchaVerifier.current!);
+      const verificationId = await sendOTP(fullPhoneNumber, recaptchaVerifier.current!);
       router.push({
         pathname: '/otp',
-        params: { verificationId, phone: fullPhone },
+        params: {
+          phone: fullPhoneNumber,
+          verificationId,
+        },
       });
-    } catch (error) {
-      console.error(error);
-      alert('Failed to send OTP');
+    } catch (error: any) {
+      console.error('OTP sending failed:', error);
+      Alert.alert('Failed to send OTP', error.message || 'Please try again');
     }
   };
 
-  const handleSettings = () => {
-    // Handle settings action
-    alert('Settings clicked');
-  };
-
   return (
-    <ImageBackground 
-      source={require('../assets/background.jpg')} 
+    <ImageBackground
+      source={require('../assets/images/bg.jpg')}
       style={styles.backgroundImage}
+      resizeMode="cover"
     >
-      <View style={styles.container}>
-        <FirebaseRecaptchaVerifierModal
-          ref={recaptchaVerifier}
-          firebaseConfig={firebaseApp.options}
-          attemptInvisibleVerification={true}
-        />
+      {/* 🔐 Important for Firebase phone auth */}
+      <FirebaseRecaptchaVerifierModal
+        ref={recaptchaVerifier}
+        firebaseConfig={auth.app.options}
+        attemptInvisibleVerification={true}
+      />
 
-        {/* Settings Icon */}
-        <TouchableOpacity style={styles.settingsButton} onPress={handleSettings}>
-          <Ionicons name="settings-outline" size={24} color="#FFD700" />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <TouchableOpacity style={styles.settingsButton} onPress={handleSettingsPress}>
+          <MaterialIcons name="settings" size={24} color="#FFD700" />
         </TouchableOpacity>
-
+        
         <View style={styles.contentContainer}>
-          {/* Game Image with Animation */}
           <View style={styles.gameImageContainer}>
-            <Animated.View
-              style={{
-                transform: [{ scale: animatedScale }],
-                overflow: 'hidden',
-              }}
-            >
-              <Image 
-                source={require('../assets/background.png')} 
-                style={styles.gameImage} 
-              />
-            </Animated.View>
+            <Image
+              source={require('../assets/background.png')}
+              style={styles.gameImage}
+            />
           </View>
 
-          {/* Form */}
           <View style={styles.formContainer}>
-            <Text style={styles.title}>BetMaster</Text>
+            <LanguageSelector />
+            <Text style={styles.title}>{t.login}</Text>
 
-            {/* Phone Input */}
             <View style={styles.phoneInputContainer}>
               <View style={styles.countryCode}>
                 <Text style={styles.countryCodeText}>+91</Text>
               </View>
               <TextInput
-                placeholder="Phone Number"
-                placeholderTextColor="#aaa"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
                 style={[styles.input, styles.phoneInput]}
+                placeholder={t.phoneNumber}
+                placeholderTextColor="#666"
+                keyboardType="phone-pad"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
                 maxLength={10}
               />
             </View>
 
-            {/* Password Input */}
             <View style={styles.passwordContainer}>
               <TextInput
-                placeholder="Password"
-                placeholderTextColor="#aaa"
+                style={styles.input}
+                placeholder={t.password}
+                placeholderTextColor="#666"
+                secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                style={styles.input}
               />
               <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
               >
-                <MaterialCommunityIcons
-                  name={showPassword ? 'eye-off' : 'eye'}
-                  size={22}
-                  color="#aaa"
+                <MaterialIcons
+                  name={showPassword ? 'visibility' : 'visibility-off'}
+                  size={24}
+                  color="#666"
                 />
               </TouchableOpacity>
             </View>
 
-            {/* Submit */}
-            <TouchableOpacity style={styles.button} onPress={handleNext}>
-              <Text style={styles.buttonText}>Next</Text>
+            <TouchableOpacity style={styles.button} onPress={handleContinue}>
+              <Text style={styles.buttonText}>{t.continueText}</Text>
             </TouchableOpacity>
+
+            <FooterIcons />
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
-}
+};
+
+export default LoginScreen;
