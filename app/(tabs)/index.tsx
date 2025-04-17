@@ -3,8 +3,6 @@ import React from 'react';
 import { useRouter } from 'expo-router';
 import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { styles } from '../../styles/index.styles';
-
-
 const CasinoIndexPage: React.FC = () => {
   const router=useRouter();
 const handleStart = () =>{

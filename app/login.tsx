@@ -75,7 +75,7 @@ export const LoginScreen: React.FC = () => {
       <FirebaseRecaptchaVerifierModal
         ref={recaptchaVerifier}
         firebaseConfig={auth.app.options}
-        attemptInvisibleVerification={true}
+        attemptInvisibleVerification={true} // Invisible reCAPTCHA
       />
 
       <KeyboardAvoidingView

@@ -26,59 +26,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [language, setLanguage] = useState<LanguageType>('english');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [soundsLoaded, setSoundsLoaded] = useState<boolean>(false);
-
   const backgroundSoundRef = useRef<Audio.Sound | null>(null);
   const buttonSoundRef = useRef<Audio.Sound | null>(null);
 
-  // Load persisted settings
-  useEffect(() => {
+  // Load persisted settings first
+  useEffect(() => 
+    {
     const loadSettings = async () => {
       try {
         const storedTheme = await AsyncStorage.getItem('theme');
         const storedLanguage = await AsyncStorage.getItem('language');
         const storedSoundEnabled = await AsyncStorage.getItem('soundEnabled');
-
+    
         if (storedTheme) setTheme(storedTheme as ThemeType);
         if (storedLanguage) setLanguage(storedLanguage as LanguageType);
-        if (storedSoundEnabled) setSoundEnabled(storedSoundEnabled === 'true');
+        // Only change sound setting if explicitly stored
+        if (storedSoundEnabled !== null) {
+          setSoundEnabled(storedSoundEnabled === 'true');
+        } 
+        // Otherwise it remains true (the default value)
+    
+        // Now load sounds with the current soundEnabled state
+        await initializeSounds(storedSoundEnabled === 'true' || storedSoundEnabled === null);
       } catch (error) {
         console.error('Failed to load settings:', error);
+        // If settings fail to load, use the default (true)
+        await initializeSounds(true);
       }
     };
 
     loadSettings();
-  }, []);
-
-  // Load sounds
-  useEffect(() => {
-    const loadSounds = async () => {
-      try {
-        const { sound: btnSound } = await Audio.Sound.createAsync(
-          require('../assets/sounds/buttonClick.mp3')
-        );
-        buttonSoundRef.current = btnSound;
-
-        const { sound: bgSound } = await Audio.Sound.createAsync(
-          require('../assets/sounds/backgroundMusic.mp3'),
-          { isLooping: true }
-        );
-        backgroundSoundRef.current = bgSound;
-
-        if (soundEnabled) {
-          const status = await bgSound.getStatusAsync();
-          if (status.isLoaded && !status.isPlaying) {
-            await bgSound.playAsync();
-          }
-          
-        }
-
-        setSoundsLoaded(true);
-      } catch (error) {
-        console.error('Failed to load sounds:', error);
-      }
-    };
-
-    loadSounds();
 
     return () => {
       const cleanup = async () => {
@@ -86,8 +63,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           await buttonSoundRef.current.unloadAsync();
         }
         if (backgroundSoundRef.current) {
-          await backgroundSoundRef.current.stopAsync();
-          await backgroundSoundRef.current.unloadAsync();
+          const status = await backgroundSoundRef.current.getStatusAsync();
+          if (status.isLoaded) {
+            await backgroundSoundRef.current.stopAsync();
+            await backgroundSoundRef.current.unloadAsync();
+          }
         }
       };
 
@@ -95,48 +75,85 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, []);
 
-  // Toggle sound
+  // Initialize sounds function
+  const initializeSounds = async (shouldPlayBackground: boolean) => {
+    try {
+      const { sound: btnSound } = await Audio.Sound.createAsync(
+        require('../assets/sounds/buttonClick.mp3')
+      );
+      buttonSoundRef.current = btnSound;
+
+      const { sound: bgSound } = await Audio.Sound.createAsync(
+        require('../assets/sounds/backgroundMusic.mp3'),
+        { isLooping: true, volume: 0.5 }
+      );
+      backgroundSoundRef.current = bgSound;
+
+      // Only play background music if sound is enabled
+      if (shouldPlayBackground) {
+        await bgSound.playAsync();
+      }
+
+      setSoundsLoaded(true);
+    } catch (error) {
+      console.error('Failed to load sounds:', error);
+    }
+  };
+
+  // Update background sound when soundEnabled changes
+  useEffect(() => {
+    const updateBackgroundSound = async () => {
+      if (!backgroundSoundRef.current) return;
+      
+      try {
+        const status = await backgroundSoundRef.current.getStatusAsync();
+        
+        if (status.isLoaded) {
+          if (soundEnabled && !status.isPlaying) {
+            await backgroundSoundRef.current.playAsync();
+          } else if (!soundEnabled && status.isPlaying) {
+            await backgroundSoundRef.current.pauseAsync();
+          }
+        }
+      } catch (error) {
+        console.error('Failed to update background sound:', error);
+      }
+    };
+    
+    if (soundsLoaded) {
+      updateBackgroundSound();
+    }
+  }, [soundEnabled, soundsLoaded]);
+
+  // Toggle sound state
   const toggleSound = async () => {
     const newSoundEnabled = !soundEnabled;
     setSoundEnabled(newSoundEnabled);
-  
+    
     try {
       await AsyncStorage.setItem('soundEnabled', newSoundEnabled.toString());
-  
-      const bgSound = backgroundSoundRef.current;
-      if (bgSound) {
-        const status = await bgSound.getStatusAsync();
-  
-        if ('isLoaded' in status && status.isLoaded) {
-          if (newSoundEnabled && !status.isPlaying) {
-            await bgSound.playAsync();
-          } else if (!newSoundEnabled && status.isPlaying) {
-            await bgSound.pauseAsync();
-          }
-        }
-      }
     } catch (error) {
-      console.error('Failed to toggle sound:', error);
+      console.error('Failed to save sound setting:', error);
     }
+    
+    // Background sound playback is handled by the useEffect above
   };
-  
 
   // Play button sound
-  const playButtonSound = async () => {
-    if (soundEnabled && buttonSoundRef.current) {
-      try {
+  const playButtonSound = async (): Promise<void> => {
+    if (!soundsLoaded || !soundEnabled || !buttonSoundRef.current) return;
+    
+    try {
+      const status = await buttonSoundRef.current.getStatusAsync();
+      
+      if (status.isLoaded) {
         await buttonSoundRef.current.setPositionAsync(0);
         await buttonSoundRef.current.playAsync();
-      } catch (error) {
-        console.error('Failed to play button sound:', error);
       }
+    } catch (error) {
+      console.error('Failed to play button sound:', error);
     }
   };
-
-  // Update status bar on theme change
-  useEffect(() => {
-    StatusBar.setBarStyle(themes[theme].statusBar);
-  }, [theme]);
 
   const toggleTheme = async () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';

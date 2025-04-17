@@ -11,9 +11,12 @@ export const SoundToggle: React.FC = () => {
   const t = translations[language];
   
   const handleToggle = () => {
+    // Only play sound if we're turning sound off, not when we're turning it on
+    // (since sound is currently enabled)
     if (soundEnabled) {
       playButtonSound();
     }
+    
     toggleSound();
   };
   
@@ -26,7 +29,7 @@ export const SoundToggle: React.FC = () => {
             styles.settingOption,
             soundEnabled && styles.activeOption
           ]}
-          onPress={soundEnabled ? undefined : handleToggle}
+          onPress={!soundEnabled ? handleToggle : undefined}
         >
           <Text
             style={[

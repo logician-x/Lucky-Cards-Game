@@ -22,6 +22,7 @@ export const translations = {
       trademark: "Trademark",
       copyright: "Copyright",
       back: "Back",
+      loadingSettings: 'Loading settings...',
     },
     hindi: {
       login: "लॉगिन",
@@ -45,5 +46,6 @@ export const translations = {
       trademark: "ट्रेडमार्क",
       copyright: "कॉपीराइट",
       back: "वापस",
+      loadingSettings: 'सेटिंग्स लोड हो रही हैं...',
     },
   };
