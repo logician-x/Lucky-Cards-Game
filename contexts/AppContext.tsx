@@ -1,11 +1,10 @@
 // src/contexts/AppContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
 import { StatusBar } from 'react-native';
 import { themes } from '../styles/theme';
 
-// Define types
 export type ThemeType = 'dark' | 'light';
 export type LanguageType = 'english' | 'hindi';
 
@@ -17,27 +16,28 @@ interface AppContextType {
   soundEnabled: boolean;
   toggleSound: () => void;
   playButtonSound: () => Promise<void>;
+  soundsLoaded: boolean;
 }
 
-// Create context
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// Create provider
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<ThemeType>('dark');
   const [language, setLanguage] = useState<LanguageType>('english');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-  const [backgroundSound, setBackgroundSound] = useState<Audio.Sound | null>(null);
-  const [buttonSound, setButtonSound] = useState<Audio.Sound | null>(null);
+  const [soundsLoaded, setSoundsLoaded] = useState<boolean>(false);
 
-  // Load settings from storage
+  const backgroundSoundRef = useRef<Audio.Sound | null>(null);
+  const buttonSoundRef = useRef<Audio.Sound | null>(null);
+
+  // Load persisted settings
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const storedTheme = await AsyncStorage.getItem('theme');
         const storedLanguage = await AsyncStorage.getItem('language');
         const storedSoundEnabled = await AsyncStorage.getItem('soundEnabled');
-        
+
         if (storedTheme) setTheme(storedTheme as ThemeType);
         if (storedLanguage) setLanguage(storedLanguage as LanguageType);
         if (storedSoundEnabled) setSoundEnabled(storedSoundEnabled === 'true');
@@ -45,120 +45,108 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Failed to load settings:', error);
       }
     };
-    
+
     loadSettings();
   }, []);
 
-  // Initialize sounds
+  // Load sounds
   useEffect(() => {
     const loadSounds = async () => {
       try {
-        // Load button sound
         const { sound: btnSound } = await Audio.Sound.createAsync(
-          require('../assets/sounds/buttonClick.mp3') // ✅ one level up to root, then into assets
+          require('../assets/sounds/buttonClick.mp3')
         );
-        setButtonSound(btnSound);
-        
-        // Load background music
+        buttonSoundRef.current = btnSound;
+
         const { sound: bgSound } = await Audio.Sound.createAsync(
-          require('../assets/sounds/backgroundMusic.mp3'), // ✅ same here
+          require('../assets/sounds/backgroundMusic.mp3'),
           { isLooping: true }
         );
-        setBackgroundSound(bgSound);
-        
-        // Start playing background music if enabled
+        backgroundSoundRef.current = bgSound;
+
         if (soundEnabled) {
-          await bgSound.playAsync();
+          const status = await bgSound.getStatusAsync();
+          if (status.isLoaded && !status.isPlaying) {
+            await bgSound.playAsync();
+          }
+          
         }
+
+        setSoundsLoaded(true);
       } catch (error) {
         console.error('Failed to load sounds:', error);
       }
     };
-    
+
     loadSounds();
-    
-    // Cleanup sounds when unmounting
+
     return () => {
       const cleanup = async () => {
-        if (buttonSound) {
-          await buttonSound.unloadAsync();
+        if (buttonSoundRef.current) {
+          await buttonSoundRef.current.unloadAsync();
         }
-        if (backgroundSound) {
-          await backgroundSound.stopAsync();
-          await backgroundSound.unloadAsync();
+        if (backgroundSoundRef.current) {
+          await backgroundSoundRef.current.stopAsync();
+          await backgroundSoundRef.current.unloadAsync();
         }
       };
-      
+
       cleanup();
     };
   }, []);
-
-  // Toggle sound when soundEnabled changes
-  useEffect(() => {
-    const updateBackgroundSound = async () => {
-      if (!backgroundSound) return;
-      
-      try {
-        if (soundEnabled) {
-          await backgroundSound.playAsync();
-        } else {
-          await backgroundSound.pauseAsync();
-        }
-      } catch (error) {
-        console.error('Failed to update background sound:', error);
-      }
-    };
-    
-    updateBackgroundSound();
-  }, [soundEnabled, backgroundSound]);
-
-  // Update StatusBar when theme changes
-  useEffect(() => {
-    StatusBar.setBarStyle(themes[theme].statusBar);
-  }, [theme]);
-
-  // Toggle theme
-  const toggleTheme = async () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    try {
-      await AsyncStorage.setItem('theme', newTheme);
-    } catch (error) {
-      console.error('Failed to save theme:', error);
-    }
-  };
-
-  // Set language
-  const changeLanguage = async (lang: LanguageType) => {
-    setLanguage(lang);
-    try {
-      await AsyncStorage.setItem('language', lang);
-    } catch (error) {
-      console.error('Failed to save language:', error);
-    }
-  };
 
   // Toggle sound
   const toggleSound = async () => {
     const newSoundEnabled = !soundEnabled;
     setSoundEnabled(newSoundEnabled);
+  
     try {
       await AsyncStorage.setItem('soundEnabled', newSoundEnabled.toString());
+  
+      const bgSound = backgroundSoundRef.current;
+      if (bgSound) {
+        const status = await bgSound.getStatusAsync();
+  
+        if ('isLoaded' in status && status.isLoaded) {
+          if (newSoundEnabled && !status.isPlaying) {
+            await bgSound.playAsync();
+          } else if (!newSoundEnabled && status.isPlaying) {
+            await bgSound.pauseAsync();
+          }
+        }
+      }
     } catch (error) {
-      console.error('Failed to save sound setting:', error);
+      console.error('Failed to toggle sound:', error);
     }
   };
+  
 
   // Play button sound
   const playButtonSound = async () => {
-    if (soundEnabled && buttonSound) {
+    if (soundEnabled && buttonSoundRef.current) {
       try {
-        await buttonSound.setPositionAsync(0);
-        await buttonSound.playAsync();
+        await buttonSoundRef.current.setPositionAsync(0);
+        await buttonSoundRef.current.playAsync();
       } catch (error) {
         console.error('Failed to play button sound:', error);
       }
     }
+  };
+
+  // Update status bar on theme change
+  useEffect(() => {
+    StatusBar.setBarStyle(themes[theme].statusBar);
+  }, [theme]);
+
+  const toggleTheme = async () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    await AsyncStorage.setItem('theme', newTheme);
+  };
+
+  const changeLanguage = async (lang: LanguageType) => {
+    setLanguage(lang);
+    await AsyncStorage.setItem('language', lang);
   };
 
   return (
@@ -171,6 +159,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         soundEnabled,
         toggleSound,
         playButtonSound,
+        soundsLoaded,
       }}
     >
       {children}
@@ -178,10 +167,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
-// Custom hook to use the app context
 export const useAppContext = () => {
   const context = useContext(AppContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAppContext must be used within an AppProvider');
   }
   return context;

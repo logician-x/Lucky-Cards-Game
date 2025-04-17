@@ -42,7 +42,7 @@ export const useResponsiveStyles = () => {
     contentContainer: {
       flex: 1,
       flexDirection: isLandscape ? 'row' : 'column',
-      justifyContent: 'center',
+      justifyContent:'space-between',
       alignItems: 'center',
       marginTop: 50, // Make space for the settings button
     },
@@ -207,6 +207,7 @@ export const useResponsiveStyles = () => {
       flex: 1,
       backgroundColor: currentTheme.background,
       padding: 24,
+     
     },
     settingRow: {
       flexDirection: 'row',

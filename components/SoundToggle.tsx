@@ -26,7 +26,7 @@ export const SoundToggle: React.FC = () => {
             styles.settingOption,
             soundEnabled && styles.activeOption
           ]}
-          onPress={!soundEnabled ? handleToggle : undefined}
+          onPress={soundEnabled ? undefined : handleToggle}
         >
           <Text
             style={[

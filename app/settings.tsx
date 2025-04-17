@@ -8,11 +8,11 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useAppContext } from '../../contexts/AppContext';
-import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
-import { translations } from '../../localization/translations';
-import { ThemeToggle } from '../../components/ThemeToggle';
-import { SoundToggle } from '../../components/SoundToggle';
+import { useAppContext } from '../contexts/AppContext';
+import { useResponsiveStyles } from '../hooks/useResponsiveStyles';
+import { translations } from '../localization/translations';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { SoundToggle } from '../components/SoundToggle';
 
 export const SettingsScreen = () => {
   const navigation = useNavigation();
