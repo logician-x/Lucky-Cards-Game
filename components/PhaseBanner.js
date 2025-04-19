@@ -38,7 +38,7 @@ const PhaseIcon = ({ phase }) => {
   const getIcon = () => {
     switch (phase) {
       case PHASES.BETTING:
-        return '💰';
+        return '₹';
       case PHASES.RESULT:
         return '🎲';
       case PHASES.RESET:

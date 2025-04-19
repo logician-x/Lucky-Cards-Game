@@ -2,15 +2,17 @@ import { Animated, Dimensions, Easing } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
-// More precise positions based on screen layout
+
+// Position the winning option, e.g., 80% from the left, 40% from the top
 const winningOptionPosition = {
-  x: 400,
-  y: 200,
+ x: width / 1.90,
+  y: height / 1.95,
 };
 
+// Position the wallet, e.g., center-top
 const walletPosition = {
-  x: 250,
-  y: 35,
+  x: width * 0.35,
+  y: height * 0.07,
 };
 
 let coinAnimRefs = [];
