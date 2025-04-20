@@ -1,20 +1,34 @@
+// src/services/authService.ts
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
-import { PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
+import { 
+  PhoneAuthProvider, 
+  signInWithCredential, 
+  signOut,
+  onAuthStateChanged,
+  User
+} from 'firebase/auth';
 import { auth } from '../firebase/firebaseConfig';
 
-/**
- * Sends an OTP to the given phone number using Firebase PhoneAuth.
- * @param phone - Full phone number (e.g., +919123456789)
- * @param recaptchaVerifier - FirebaseRecaptchaVerifierModal ref
- * @returns Firebase verification ID used for OTP verification
- */
+// Get Firebase Auth instance - this is the function that's missing
+export const getFirebaseAuth = () => {
+  if (!auth) {
+    throw new Error('Firebase Auth is not initialized');
+  }
+  return auth;
+};
+
+// Send OTP to user's phone
 export const sendOTP = async (
-  phone: string,
+  phoneNumber: string,
   recaptchaVerifier: FirebaseRecaptchaVerifierModal
 ): Promise<string> => {
   try {
-    const phoneProvider = new PhoneAuthProvider(auth);
-    const verificationId = await phoneProvider.verifyPhoneNumber(phone, recaptchaVerifier);
+    const auth = getFirebaseAuth();
+    const provider = new PhoneAuthProvider(auth);
+    const verificationId = await provider.verifyPhoneNumber(
+      phoneNumber,
+      recaptchaVerifier
+    );
     return verificationId;
   } catch (error) {
     console.error('Error sending OTP:', error);
@@ -22,22 +36,42 @@ export const sendOTP = async (
   }
 };
 
-/**
- * Verifies the OTP using the verification ID from sendOTP.
- * @param verificationId - ID received from Firebase after sending OTP
- * @param otp - 6-digit OTP code entered by the user
- */
-export const verifyOTP = async (verificationId: string, otp: string) => {
+// Verify OTP entered by user
+export const confirmOTP = async (
+  verificationId: string,
+  otp: string
+): Promise<void> => {
   try {
+    const auth = getFirebaseAuth();
     const credential = PhoneAuthProvider.credential(verificationId, otp);
-    return await signInWithCredential(auth, credential);
+    await signInWithCredential(auth, credential);
   } catch (error) {
-    console.error('Error verifying OTP:', error);
+    console.error('Error confirming OTP:', error);
     throw error;
   }
 };
 
-/**
- * Returns the Firebase auth instance (if needed elsewhere).
- */
-export const getFirebaseAuth = () => auth;
+// Sign out current user
+export const signOutUser = async (): Promise<void> => {
+  try {
+    const auth = getFirebaseAuth();
+    await signOut(auth);
+  } catch (error) {
+    console.error('Error signing out:', error);
+    throw error;
+  }
+};
+
+// Listen to auth state changes
+export const subscribeToAuthChanges = (
+  callback: (user: User | null) => void
+) => {
+  const auth = getFirebaseAuth();
+  return onAuthStateChanged(auth, callback);
+};
+
+// Get current user
+export const getCurrentUser = () => {
+  const auth = getFirebaseAuth();
+  return auth.currentUser;
+};

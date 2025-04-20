@@ -1,3 +1,5 @@
+import { sendOTP } from "@/services/authService";
+
 // src/localization/translations.ts
 export const translations = {
     english: {
@@ -5,6 +7,7 @@ export const translations = {
       phoneNumber: "Phone Number",
       password: "Password",
       enterOTP: "Enter OTP",
+      sendOTP:"Send OTP",
       continueText: "Continue",
       resendOTP: "Resend OTP",
       verify: "Verify",
@@ -14,6 +17,9 @@ export const translations = {
       light: "Light",
       sound: "Sound",
       on: "On",
+      verification: "Verification",
+      otpSentMessage: "Enter the 6-digit code sent to your phone",
+      resendIn: "Resend in",
       off: "Off",
       language: "Language",
       english: "English",
@@ -34,8 +40,12 @@ export const translations = {
       verify: "सत्यापित करें",
       settings: "सेटिंग्स",
       theme: "थीम",
+      sendOTP: "OTP पाठवा",
       dark: "डार्क",
       light: "लाइट",
+      verification: "सत्यापन",
+      otpSentMessage: "आपके फोन पर भेजे गए 6-अंकों का कोड दर्ज करें",
+     resendIn: "पुनः भेजें",
       sound: "आवाज़",
       on: "चालू",
       off: "बंद",

@@ -2,8 +2,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio } from 'expo-av';
-import { StatusBar } from 'react-native';
-import { themes } from '../styles/theme';
+
 
 export type ThemeType = 'dark' | 'light';
 export type LanguageType = 'english' | 'hindi';
@@ -24,14 +23,13 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<ThemeType>('dark');
   const [language, setLanguage] = useState<LanguageType>('english');
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true); // Default to true
   const [soundsLoaded, setSoundsLoaded] = useState<boolean>(false);
   const backgroundSoundRef = useRef<Audio.Sound | null>(null);
   const buttonSoundRef = useRef<Audio.Sound | null>(null);
 
   // Load persisted settings first
-  useEffect(() => 
-    {
+  useEffect(() => {
     const loadSettings = async () => {
       try {
         const storedTheme = await AsyncStorage.getItem('theme');
@@ -40,17 +38,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
         if (storedTheme) setTheme(storedTheme as ThemeType);
         if (storedLanguage) setLanguage(storedLanguage as LanguageType);
-        // Only change sound setting if explicitly stored
-        if (storedSoundEnabled !== null) {
-          setSoundEnabled(storedSoundEnabled === 'true');
-        } 
-        // Otherwise it remains true (the default value)
+        
+        // Critical change: Set soundEnabled to true by default
+        // Only change to false if explicitly stored as 'false'
+        if (storedSoundEnabled === 'false') {
+          setSoundEnabled(false);
+        } else {
+          // Default to true for new installations or if 'true'
+          setSoundEnabled(true);
+        }
     
-        // Now load sounds with the current soundEnabled state
-        await initializeSounds(storedSoundEnabled === 'true' || storedSoundEnabled === null);
+        // Always initialize sounds - they'll play or not based on soundEnabled state
+        await initializeSounds(storedSoundEnabled !== 'false');
       } catch (error) {
         console.error('Failed to load settings:', error);
-        // If settings fail to load, use the default (true)
+        // If settings fail to load, default to sound enabled
+        setSoundEnabled(true);
         await initializeSounds(true);
       }
     };

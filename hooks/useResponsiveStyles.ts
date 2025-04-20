@@ -46,24 +46,44 @@ export const useResponsiveStyles = () => {
       alignItems: 'center',
       marginTop: 50, // Make space for the settings button
     },
+
     gameImageContainer: {
       flex: isLandscape ? 1 : 0,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: isLandscape ? 0 : 24,
       marginRight: isLandscape ? 20 : 0,
-      height: isLandscape ? 300 : 220,
-      width: isLandscape ? 300 : 220,
+      height: isLandscape ? 340 : 280, // Increased to accommodate the smaller images
+      width: isLandscape ? 300 : 240,
       overflow: 'hidden',
     },
+    
     gameImage: {
-      width: isLandscape ? 280 : 200,
-      height: isLandscape ? 280 : 200,
+      width: isLandscape ? 240 : 180,
+      height: isLandscape ? 220 : 180,
       resizeMode: 'contain',
     },
+    licenseContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 1,
+      gap: 12,
+      marginBottom:28,
+    },
+    
+    licenseImage: {
+      width: isLandscape ? 50 : 40,
+      height: isLandscape ? 50 : 40,
+      borderRadius: isLandscape ? 25 : 20, // Half of width/height to make it circular
+      resizeMode: 'cover', // Fill the circle
+      borderWidth: 1,
+      borderColor: '#ccc', // Optional: adds subtle outline
+    },
+    
     formContainer: {
       flex: isLandscape ? 1 : 0,
-      width: isLandscape ? '50%' : '100%',
+      width: isLandscape ? '50%' : '90%', // Reduced from 100% to 90%
       alignItems: 'center',
       backgroundColor: currentTheme.card,
       padding: 24,
@@ -85,15 +105,16 @@ export const useResponsiveStyles = () => {
       marginBottom: 24,
       fontSize: 16,
       opacity: 0.7,
+      textAlign: 'center',
     },
     phoneInputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      width: '100%',
+      width: '90%', // Reduced from 100% to 90%
       marginBottom: 16,
     },
     countryCode: {
-      padding: 12,
+      padding: 10, // Reduced from 12 to 10
       borderWidth: 1,
       borderColor: currentTheme.border,
       backgroundColor: currentTheme.input,
@@ -108,7 +129,7 @@ export const useResponsiveStyles = () => {
       marginBottom: 0,
     },
     passwordContainer: {
-      width: '100%',
+      width: '90%', // Reduced from 100% to 90%
       marginBottom: 16,
       position: 'relative',
     },
@@ -118,12 +139,36 @@ export const useResponsiveStyles = () => {
       borderColor: currentTheme.border,
       backgroundColor: currentTheme.input,
       color: currentTheme.text,
-      padding: 12,
+      padding: 10, // Reduced from 12 to 10
       borderRadius: 8,
       marginBottom: 16,
+      height: 42, // Added explicit height
+    },
+    otpWrapper: {
+      width: '90%', // Reduced from 100% to 90%
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    otpBoxesContainer: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 24,
+    },
+    otpBox: {
+      width: width < 400 ? 35 : 40, // Reduced from 40/45 to 35/40
+      height: width < 400 ? 35 : 40, // Reduced from 50/55 to 35/40
+      borderWidth: 1,
+      borderColor: currentTheme.border,
+      backgroundColor: currentTheme.input,
+      color: currentTheme.text,
+      borderRadius: 8,
+      textAlign: 'center',
+      fontSize: 18, // Reduced from 20 to 18
+      fontWeight: 'bold',
     },
     otpContainer: {
-      width: '100%',
+      width: '100%', // Reduced from 100% to 90%
       marginBottom: 24,
     },
     otpInput: {
@@ -132,26 +177,28 @@ export const useResponsiveStyles = () => {
       borderColor: currentTheme.border,
       backgroundColor: currentTheme.input,
       color: currentTheme.text,
-      padding: 16,
+      padding: 14, 
       borderRadius: 8,
       textAlign: 'center',
-      fontSize: 24,
+      fontSize: 22, 
       letterSpacing: 8,
       fontWeight: 'bold',
+      height: 45, 
     },
     eyeIcon: {
       position: 'absolute',
       right: 12,
-      top: 14,
+      top: 12, 
     },
     button: {
       backgroundColor: currentTheme.accent,
-      paddingVertical: 12,
+      paddingVertical: 14, 
       paddingHorizontal: 32,
       borderRadius: 8,
-      width: '100%',
+      width: '90%', 
       alignItems: 'center',
       marginTop: 10,
+      marginBottom:60,
     },
     buttonText: {
       color: '#000',
@@ -159,7 +206,7 @@ export const useResponsiveStyles = () => {
       fontSize: 16,
     },
     resendButton: {
-      marginTop: 20,
+      marginTop: 8,
       padding: 8,
     },
     resendText: {
@@ -168,7 +215,7 @@ export const useResponsiveStyles = () => {
       fontWeight: '500',
     },
     languageSelectorContainer: {
-      width: '100%',
+      width: '100%', 
       flexDirection: 'row',
       justifyContent: 'flex-end',
       marginBottom: 16,
@@ -190,7 +237,7 @@ export const useResponsiveStyles = () => {
       color: '#000',
     },
     footerContainer: {
-      width: '100%',
+      width: '100%', 
       flexDirection: 'row',
       justifyContent: 'space-around',
       marginTop: 24,
@@ -240,5 +287,21 @@ export const useResponsiveStyles = () => {
     activeOptionText: {
       color: '#000',
     },
+    otpButtonsContainer: {
+      width: '100%',
+      alignItems: 'center',
+    },
+    
+    textButton: {
+      width: '90%',
+      alignItems: 'center',
+      padding: 10,
+    },
+    
+    textButtonText: {
+      color: currentTheme.accent,
+      fontSize: 14,
+      fontWeight: '500',
+    }
   });
 };
