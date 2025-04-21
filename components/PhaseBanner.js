@@ -507,15 +507,7 @@ const styles = StyleSheet.create({
   refreshIcon: {
     fontSize: 40,
   },
-  refreshText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 24,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
-    letterSpacing: 2,
-  }
+
 });
 
 export default PhaseBanner;

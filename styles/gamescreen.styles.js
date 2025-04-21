@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
     sidebarContainer: {
       position: 'absolute',
       left: 0,
-      top: 20,
+      top: 13,
       bottom: 0,
       width: 160,
       height:165,
@@ -72,21 +72,11 @@ export const styles = StyleSheet.create({
     walletContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 15,
-      paddingVertical: 8,
-      borderRadius: 30,
-      borderWidth: 2,
-      borderColor: '#fff',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 6,
-      elevation: 8,
       position: 'absolute',
       top: 20,
-      left: 250,
+      left: 200,
       zIndex: 99,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      backgroundColor: 'rgba(0, 0, 0, 0.3)',
     },
     walletIcon: {
       width: 40,
@@ -99,6 +89,20 @@ export const styles = StyleSheet.create({
       fontWeight: 'bold',
       fontSize: 16,
     },
+  addButton: {
+  marginLeft: 10,
+  backgroundColor: '#ff4085', // pinkish red 
+  paddingVertical: 5,
+  paddingHorizontal: 12,
+  borderRadius: 8,
+},
+
+addButtonText: {
+  color: '#fff',
+  fontWeight: 'bold',
+  fontSize: 14,
+},
+
     timerContainer: {
       position: 'absolute',
       top: 20,         
@@ -121,7 +125,7 @@ export const styles = StyleSheet.create({
     timerText: {
       color: '#fff',
       fontWeight: 'bold',
-      fontSize: 18,
+      fontSize: 22,
     },
     ladiesContainer: {
       position: 'absolute',
@@ -253,7 +257,7 @@ export const styles = StyleSheet.create({
     opacity: 1,
     transform: [{ scale: 1.75 }],
  
-    //elevation: 5, // For Android
+    elevation: 5, // For Android
   },
   
     disabledChip: {
@@ -276,6 +280,7 @@ export const styles = StyleSheet.create({
       fontWeight: 'bold',
       fontSize: 12,
     },
+    
     previousWinnerContainer: {
       marginBottom:100,
       marginLeft:15,

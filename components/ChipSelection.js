@@ -39,7 +39,7 @@ const ChipSelection = ({
         onPress={onClearBets}
         disabled={isDisabled || totalBetAmount === 0}
       >
-        <Text style={styles.clearButtonText}>Clear Bets</Text>
+        <Text style={styles.clearButtonText}>Rebet</Text>
       </TouchableOpacity>
     </View>
   );
