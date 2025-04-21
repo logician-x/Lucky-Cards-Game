@@ -52,7 +52,7 @@ const PhaseIcon = ({ phase }) => {
   const getColor = () => {
     switch (phase) {
       case PHASES.BETTING:
-        return 'rgba(255, 255, 255, 0.4)';
+        return 'rgb(254, 170, 15)';
       case PHASES.RESULT:
         return 'rgba(255, 255, 255, 0.5)';
       case PHASES.RESET:
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     minWidth: 100,
   },
   bettingBanner: {
-    backgroundColor: 'rgba(255, 80, 130, 0.85)', // More vibrant pink
+    backgroundColor: 'rgb(255, 95, 31)', // More vibrant pink
     borderColor: '#ff3366',
     borderTopWidth: 1, // Thinner top border for 3D effect
     borderLeftWidth: 1,
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
   },
   resultBanner: {
-    backgroundColor: 'rgba(233, 64, 42, 0.9)', // Yellow for result phase
+    backgroundColor: 'rgba(107, 109, 242, 0.9)', // Yellow for result phase
     borderColor: '#ffa000',
     borderTopWidth: 1,
     borderLeftWidth: 1, 
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
   },
   resetBanner: {
-    backgroundColor: 'rgba(244, 169, 194, 0.85)', // Different red for reset phase
+    backgroundColor: 'rgba(25, 234, 36, 0.85)', // Different red for reset phase
     borderColor: '#c2185b',
     borderTopWidth: 1,
     borderLeftWidth: 1,

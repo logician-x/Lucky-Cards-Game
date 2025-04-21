@@ -119,7 +119,7 @@ const GameScreen = () => {
       setIsWinner(userPlacedAnyBets ? false : null);
     }
   
-    setWinnersCount(Math.floor(Math.random() * 10) + 1);
+    setWinnersCount(Math.floor(Math.random() * 100) + 1);
   
     // 🔁 Wait until everything is settled
     setTimeout(() => {

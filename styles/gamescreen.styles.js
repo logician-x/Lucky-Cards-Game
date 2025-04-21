@@ -251,17 +251,9 @@ export const styles = StyleSheet.create({
     },
    selectedChip: {
     opacity: 1,
-    transform: [{ scale: 1.4 }],
-    backgroundColor: 'rgba(245, 11, 178, 0.94)',
-    borderRadius: 30,
-    padding: 0,
-    borderWidth: 1,
-    borderColor: 'gold',
-    shadowColor: 'gold',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 5,
-    elevation: 5, // For Android
+    transform: [{ scale: 1.75 }],
+ 
+    //elevation: 5, // For Android
   },
   
     disabledChip: {
