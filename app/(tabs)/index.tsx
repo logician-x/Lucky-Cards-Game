@@ -95,11 +95,12 @@ const CasinoIndexPage: React.FC = () => {
         </View>
       </View>
       
-      {/* Notification banner component */}
-      <NotificationBanner />
+    
       
       {/* Main content */}
       <View style={styles.backgroundContainer}>
+          {/* Notification banner component */}
+      <NotificationBanner />
         <ScrollView contentContainerStyle={styles.mainContent}>
           {/* Logo/Featured Game */}
           <TouchableOpacity

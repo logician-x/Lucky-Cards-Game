@@ -268,17 +268,19 @@ const GameScreen = () => {
             
             {/* Phase Banner */}
             <PhaseBanner phase={gamePhase} />
+            
           </View>
           
           {/* Presenter Image */}
           <View style={styles.ladiesContainer}>
+        
             <Image
               source={ladyPresenter} 
               style={styles.ladiesImage}
               resizeMode="contain"
             />
           </View>
-          
+          <NotificationBanner />
           {/* Items Grid */}
           <View style={styles.gridContainer}>
           
