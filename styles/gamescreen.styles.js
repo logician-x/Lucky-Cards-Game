@@ -1,6 +1,10 @@
-import { StyleSheet,Dimensions } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
+
+// Get device dimensions
 const { width, height } = Dimensions.get('window');
+const scale = Math.min(width / 400, height / 800); // Base scale factor
 const itemSize = Math.min(width / 8, height / 5);
+
 export const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -45,7 +49,7 @@ export const styles = StyleSheet.create({
       top: 13,
       bottom: 0,
       width: 160,
-      height:165,
+      height: 165,
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       zIndex: 1000,
       borderRightWidth: 2,
@@ -74,7 +78,7 @@ export const styles = StyleSheet.create({
       alignItems: 'center',
       position: 'absolute',
       top: 20,
-      left: 200,
+      left: width > 400 ? 200 : width / 2,
       zIndex: 99,
       backgroundColor: 'rgba(0, 0, 0, 0.3)',
     },
@@ -89,30 +93,28 @@ export const styles = StyleSheet.create({
       fontWeight: 'bold',
       fontSize: 16,
     },
-  addButton: {
-  marginLeft: 10,
-  backgroundColor: '#ff4085', // pinkish red 
-  paddingVertical: 5,
-  paddingHorizontal: 12,
-  borderRadius: 8,
-},
-
-addButtonText: {
-  color: '#fff',
-  fontWeight: 'bold',
-  fontSize: 14,
-},
-
+    addButton: {
+      marginLeft: 10,
+      backgroundColor: '#ff4085', // pinkish red 
+      paddingVertical: 5,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+    },
+    addButtonText: {
+      color: '#fff',
+      fontWeight: 'bold',
+      fontSize: 14,
+    },
     timerContainer: {
       position: 'absolute',
-      top: 20,         
-      right: 325,          
-      width: 40,          
+      top: 20,
+      right: width > 400 ? 325 : width - 75,
+      width: 40,
       height: 40,
-      backgroundColor: '#1a1a1a', 
-      borderRadius: 25,   
+      backgroundColor: '#1a1a1a',
+      borderRadius: 25,
       borderWidth: 2,
-      borderColor: '#ff2e63',     
+      borderColor: '#ff2e63',
       justifyContent: 'center',
       alignItems: 'center',
       elevation: 6,
@@ -150,8 +152,8 @@ addButtonText: {
       marginVertical: 3,
     },
     itemContainer: {
-      width: 80,
-      height: 80,
+      width: itemSize,
+      height: itemSize,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: '#fff',
@@ -226,18 +228,15 @@ addButtonText: {
       paddingHorizontal: 0,
       marginBottom: 10,
     },
-  
-  chipSelectionContainer: {
-      width:700,
+    chipSelectionContainer: {
       backgroundColor: 'rgba(236, 221, 221, 0.5)',
       borderRadius: 10,
-      borderWidth:2,
-      borderColor:'#FFD700',
-      marginLeft: 130,
-      marginTop:160,
-      width:600,
+      borderWidth: 2,
+      borderColor: '#FFD700',
+      marginLeft: width > 400 ? 130 : width * 0.32,
+      marginTop: 160,
+      width: width > 400 ? 600 : width * 0.65,
     },
-  
     chipSelectionRow: {
       flexDirection: 'row',
       justifyContent: 'center',
@@ -246,20 +245,18 @@ addButtonText: {
       height: 20,
     },
     chipButton: {
-      marginTop:0,
-      marginLeft:10,
+      marginTop: 0,
+      marginLeft: 10,
       alignItems: 'center',
       marginHorizontal: 0,
       marginVertical: 2,
       opacity: 10,
     },
-   selectedChip: {
-    opacity: 1,
-    transform: [{ scale: 1.75 }],
- 
-    elevation: 5, // For Android
-  },
-  
+    selectedChip: {
+      opacity: 1,
+      transform: [{ scale: 1.75 }],
+      elevation: 5, // For Android
+    },
     disabledChip: {
       opacity: 0.4,
     },
@@ -280,10 +277,9 @@ addButtonText: {
       fontWeight: 'bold',
       fontSize: 12,
     },
-    
     previousWinnerContainer: {
-      marginBottom:100,
-      marginLeft:15,
+      marginBottom: 100,
+      marginLeft: 15,
       backgroundColor: 'rgba(123, 125, 125, 0.5)',
       borderRadius: 10,
       padding: 0,
@@ -360,9 +356,9 @@ addButtonText: {
       fontWeight: 'bold',
     },
     highlightedItem: {
-  borderWidth: 3,
-  borderColor: 'gold',
-  borderRadius: 12,
-  backgroundColor: '#fff7cc',
-},
-  });
+      borderWidth: 3,
+      borderColor: 'gold',
+      borderRadius: 12,
+      backgroundColor: '#fff7cc',
+    },
+});

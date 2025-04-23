@@ -11,6 +11,7 @@ import { Sidebar, HamburgerMenu } from '../../components/Sidebar';
 import PreviousWinner from '../../components/PreviousWinner';
 import ChipSelection from '../../components/ChipSelection';
 import TimerDisplay from '../../components/TimerDisplay';
+import NotificationBanner from '../../components/NotificationBanner';
 
 // Constants, hooks, and styles
 import { PHASES, itemNames } from '../../constants/gameConstants';
@@ -280,6 +281,7 @@ const GameScreen = () => {
           
           {/* Items Grid */}
           <View style={styles.gridContainer}>
+          
             <View style={styles.gridRow}>
               {[0, 1, 2, 3, 4, 5].map(index => (
                 <GameItem
@@ -313,7 +315,7 @@ const GameScreen = () => {
               ))}
             </View>
           </View>
-          
+         
           {/* Winner Announcement */}       
           {gamePhase === PHASES.RESULT && showResultText && winnerIndex !== null && (
             <View style={styles.resultContainer}>

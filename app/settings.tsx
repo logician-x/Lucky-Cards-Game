@@ -16,7 +16,6 @@ import { SoundToggle } from '../components/SoundToggle';
 
 export const SettingsScreen = () => {
   const navigation = useNavigation();
-  
   const {
     language,
     setLanguage,
