@@ -2,8 +2,8 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator } from 'react-native';
-import { AppProvider } from '../contexts/AppContext'; // ✅ Import AppProvider
+import { AppProvider } from '../contexts/AppContext';
+import LoadingScreen from './loading';
 
 export default function RootLayout() {
   const { user, loading } = useAuth();
@@ -23,15 +23,11 @@ export default function RootLayout() {
   }, [user, segments, loading]);
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#e91e63" />
-      </View>
-    );
+    return <LoadingScreen />; // 👈 Use your custom screen instead of ActivityIndicator
   }
 
   return (
-    <AppProvider> {/* ✅ Wrap Slot inside AppProvider */}
+    <AppProvider>
       <StatusBar hidden />
       <Slot />
     </AppProvider>
