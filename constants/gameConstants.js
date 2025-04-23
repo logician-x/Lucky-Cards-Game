@@ -10,3 +10,4 @@ export const PHASES = {
     'Umbrella', 'Football', 'Sun', 'Diya', 'Cow', 'Bucket', 'Kite', 'Top',
     'Rose', 'Butterfly', 'Crow', 'Rabbit'
   ];
+  

@@ -1,7 +1,7 @@
 import { Animated, Dimensions, Easing } from 'react-native';
-
+import { Audio } from 'expo-av';
 const { width, height } = Dimensions.get('window');
-
+let coinSound;
 
 // Position the winning option, e.g., 80% from the left, 40% from the top
 const winningOptionPosition = {
@@ -40,13 +40,33 @@ export const setupAnimations = () => {
 };
 
 // Enhanced coin animation with better physics and shine effect
-export const animateCoinsToWallet = () => {
-  const NUM_COINS = 15; // More coins for visual impact
-  
-  // Clear any previous animations
+export const animateCoinsToWallet = async () => {
+  const NUM_COINS = 15;
+
+  // 🎵 Play coin fly sound (for 2 seconds)
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      require('../assets/sounds/coin_fly.mp3')
+    );
+    coinSound = sound;
+    await coinSound.setVolumeAsync(0.8);
+    await coinSound.playAsync();
+
+    // Stop after 2 seconds
+    setTimeout(async () => {
+      if (coinSound) {
+        await coinSound.stopAsync();
+        await coinSound.unloadAsync();
+        coinSound = null;
+      }
+    }, 2000);
+  } catch (error) {
+    console.log('Error playing coin sound:', error);
+  }
+
+  // Reset and animate coins
   coinAnimRefs = [];
-  
-  // Clean up any existing particles
+
   particleRefs.forEach(p => {
     if (p && p.opacity) {
       Animated.timing(p.opacity, {
@@ -56,47 +76,34 @@ export const animateCoinsToWallet = () => {
       }).start();
     }
   });
-  
-  // Reset particles array after fade out
+
   setTimeout(() => {
     particleRefs = [];
   }, 150);
 
-  // Create glitter/shine effect at winning position
   createShineEffect(winningOptionPosition.x, winningOptionPosition.y);
 
   for (let i = 0; i < NUM_COINS; i++) {
-    // Random starting positions within a small area around the winning option
     const randomOffsetX = Math.random() * 40 - 20;
     const randomOffsetY = Math.random() * 40 - 20;
-    
+
     const x = new Animated.Value(winningOptionPosition.x + randomOffsetX);
     const y = new Animated.Value(winningOptionPosition.y + randomOffsetY);
-    const opacity = new Animated.Value(0); // Start invisible
+    const opacity = new Animated.Value(0);
     const scale = new Animated.Value(0.5);
     const rotation = new Animated.Value(0);
-    
+
     coinAnimRefs.push({ x, y, opacity, scale, rotation });
 
-    // Duration calculation based on distance
     const distance = Math.sqrt(
-      Math.pow(walletPosition.x - (winningOptionPosition.x + randomOffsetX), 2) + 
+      Math.pow(walletPosition.x - (winningOptionPosition.x + randomOffsetX), 2) +
       Math.pow(walletPosition.y - (winningOptionPosition.y + randomOffsetY), 2)
     );
     const baseDuration = 800;
     const duration = baseDuration + (distance / 5);
-    
-    // Path config for coin trajectory
-    const midX = winningOptionPosition.x + (walletPosition.x - winningOptionPosition.x) * 0.5;
-    const midY = winningOptionPosition.y + (walletPosition.y - winningOptionPosition.y) * 0.3;
-    const controlX = midX + (Math.random() * 80 - 40);
-    const controlY = midY + (Math.random() * 60 - 30);
 
-    // Coin appears with a small 'pop' effect
     Animated.sequence([
-      Animated.delay(i * 70), // Staggered start for each coin
-      
-      // Appearance animation
+      Animated.delay(i * 70),
       Animated.parallel([
         Animated.timing(opacity, {
           toValue: 1,
@@ -110,59 +117,56 @@ export const animateCoinsToWallet = () => {
           useNativeDriver: true,
         }),
       ]),
-      
-      // Move and rotate animation
       Animated.parallel([
-        // X position animation
         Animated.timing(x, {
           toValue: walletPosition.x,
           duration: duration,
           easing: Easing.bezier(0.2, 0.65, 0.4, 0.95),
           useNativeDriver: true,
         }),
-        
-        // Y position animation with custom curve
         Animated.timing(y, {
           toValue: walletPosition.y,
           duration: duration,
           easing: Easing.bezier(0.2, 0.65, 0.4, 0.95),
           useNativeDriver: true,
         }),
-        
-        // Coin spins as it flies
         Animated.timing(rotation, {
-          toValue: 4 + Math.random() * 4, // Random number of full rotations
+          toValue: 4 + Math.random() * 4,
           duration: duration,
           easing: Easing.bezier(0.2, 0.5, 0.8, 1),
           useNativeDriver: true,
         }),
-        
-        // Coin shrinks as it reaches the wallet
         Animated.timing(scale, {
           toValue: 0.2,
           duration: duration,
           easing: Easing.bezier(0.4, 0, 0.6, 1),
           useNativeDriver: true,
         }),
-        
-        // Coin fades as it reaches the wallet
         Animated.timing(opacity, {
           toValue: 0,
           duration: duration,
-          // Only start fading halfway through animation
           delay: duration * 0.6,
           useNativeDriver: true,
         }),
       ]),
-    ]).start(() => {
-      // Once the last coin animation is complete, add a little 'shine' to the wallet
+    ]).start(async () => {
       if (i === NUM_COINS - 1) {
         createWalletShineEffect();
+
+        // 🔔 Play wallet chime at the end
+        try {
+          const { sound: chimeSound } = await Audio.Sound.createAsync(
+            require('../assets/sounds/chime_audio.mp3')
+          );
+          await chimeSound.setVolumeAsync(1.0);
+          await chimeSound.playAsync();
+        } catch (error) {
+          console.log('Error playing chime:', error);
+        }
       }
     });
   }
-  
-  // Return true to indicate animation has started
+
   return true;
 };
 

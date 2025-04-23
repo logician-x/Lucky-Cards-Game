@@ -11,6 +11,7 @@ import { Sidebar, HamburgerMenu } from '../../components/Sidebar';
 import PreviousWinner from '../../components/PreviousWinner';
 import ChipSelection from '../../components/ChipSelection';
 import TimerDisplay from '../../components/TimerDisplay';
+import NotificationBanner from '../../components/NotificationBanner';
 
 // Constants, hooks, and styles
 import { PHASES, itemNames } from '../../constants/gameConstants';
@@ -25,7 +26,6 @@ import {
   startTimerPulse, 
   animateWinner, 
   animateReset, 
-  highlightedIndex,
   animateHighlightAcrossOptions,
   animateCoinsToWallet, 
   animateCoinPlacement 
@@ -49,8 +49,6 @@ const GameScreen = () => {
   const hasHandledResultRef = useRef(false);
   const [showResultText, setShowResultText] = useState(false);
 
-
-
   // Animation refs
   const walletRef = useRef();
   const animations = setupAnimations();
@@ -71,69 +69,70 @@ const GameScreen = () => {
     return () => animation.stop();
   }, []);
 
-  useEffect(() => {
-    if (PHASES === 'reset') {
-      setHighlightedIndex(null);
-    }
-  }, [PHASES]);
-  useEffect(() => {
-    if (gamePhase === PHASES.BETTING) {
-      setShowResultText(false); // Hide message for new round
-      setIsWinner(null);        // Reset winner status
-    }
-  }, [gamePhase]);
-  
-  
   // Game timer and phase management
   const handlePhaseChange = (phase) => {
+    console.log('Phase changed to:', phase);
+    
     if (phase === PHASES.BETTING) {
-      hasHandledResultRef.current = false; // 🔄 Reset for new round
+      hasHandledResultRef.current = false; // Reset for new round
       resetBets();
     } else if (phase === PHASES.RESET) {
       animateReset(resetFade);
     }
   };
   
-
- // In your determineWinnerHandler function:
- const determineWinnerHandler = () => {
-  if (hasHandledResultRef.current) return; // 🚫 Already called
-  hasHandledResultRef.current = true;     // ✅ Mark as called
-
-  console.log('🎯 Winner logic triggered');
-
-  const randIndex = Math.floor(Math.random() * 12);
-
-  animateHighlightAcrossOptions(setHighlightedIndex, randIndex, () => {
-    setWinnerIndex(randIndex);
-    animateWinner(winnerScale, confettiOpacity);
-  
-    const userPlacedAnyBets = bets.some(bet => bet > 0);
-  
-    if (bets[randIndex] > 0) {
-      const winnings = bets[randIndex] * 10;
-      setWalletBalance(prev => prev + winnings);
-      setIsWinner(true);
-      animateCoinsToWallet();
-    } else {
-      setIsWinner(userPlacedAnyBets ? false : null);
+  // Handle phase change effects
+  useEffect(() => {
+    if (gamePhase === PHASES.BETTING) {
+      setShowResultText(false); // Hide message for new round
+      setIsWinner(null);        // Reset winner status
     }
-  
-    setWinnersCount(Math.floor(Math.random() * 10) + 1);
-  
-    // 🔁 Wait until everything is settled
-    setTimeout(() => {
-      setShowResultText(true);
-    }, 2000); // Adjust based on how long your animations last
-  });};
+  }, [gamePhase]);
 
-  
+  // In your determineWinnerHandler function:
+  const determineWinnerHandler = () => {
+    if (hasHandledResultRef.current) return; // Already called
+    hasHandledResultRef.current = true;     // Mark as called
 
+    console.log('🎯 Winner logic triggered');
+
+    const randIndex = Math.floor(Math.random() * 12);
+
+    animateHighlightAcrossOptions(setHighlightedIndex, randIndex, () => {
+      setWinnerIndex(randIndex);
+      animateWinner(winnerScale, confettiOpacity);
+    
+      const userPlacedAnyBets = bets.some(bet => bet > 0);
+    
+      if (bets[randIndex] > 0) {
+        const winnings = bets[randIndex] * 10;
+        setWalletBalance(prev => prev + winnings);
+        setIsWinner(true);
+        animateCoinsToWallet();
+      } else {
+        setIsWinner(userPlacedAnyBets ? false : null);
+      }
+    
+      setWinnersCount(Math.floor(Math.random() * 100) + 1);
+    
+      // Wait until everything is settled
+      setTimeout(() => {
+        setShowResultText(true);
+      }, 2000); // Adjust based on how long your animations last
+    });
+  };
+
+  // Initialize game timer hook
   const { gamePhase, phaseTimer, timerColor } = useGameTimer(
     handlePhaseChange,
     determineWinnerHandler
   );
 
+  const handleAddPress = () => {
+    // Open a modal, show options, or directly add money
+    console.log('Add button pressed');
+  };
+  
   // Reset bets function - separate from the round start logic
   const resetBets = () => {
     // If there was a winner, save it to previous winners
@@ -234,17 +233,6 @@ const GameScreen = () => {
     setIsMenuOpen(prev => !prev);
   };
 
-  // Render reset phase banner
-  const renderResetBanner = () => {
-    if (gamePhase !== PHASES.RESET) return null;
-    
-    return (
-      <Animated.View style={[styles.resetBanner, { opacity: resetFade }]}>
-        <Text style={styles.resetBannerText}>Starting New Round...</Text>
-      </Animated.View>
-    );
-  };
-
   return (
     <View style={{ flex: 1 }}>
       <Sidebar isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
@@ -273,6 +261,9 @@ const GameScreen = () => {
             <View ref={walletRef} style={styles.walletContainer}>
               <Image source={walletIcon} style={styles.walletIcon} />
               <Text style={styles.walletText}>₹ {walletBalance}</Text>
+              <TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
+               <Text style={styles.addButtonText}>Add</Text>
+              </TouchableOpacity>
             </View>
             
             {/* Phase Banner */}
@@ -288,59 +279,57 @@ const GameScreen = () => {
             />
           </View>
           
-          {/* Reset Phase Banner */}
-          {renderResetBanner()}
+          {/* Items Grid */}
+          <View style={styles.gridContainer}>
           
-         {/* Items Grid */}
-<View style={styles.gridContainer}>
-  <View style={styles.gridRow}>
-    {[0, 1, 2, 3, 4, 5].map(index => (
-      <GameItem
-        key={index}
-        index={index}
-        image={itemImages[index]}
-        winnerIndex={winnerIndex}
-        highlightedIndex={highlightedIndex} // ✅ Pass this
-        gamePhase={gamePhase}
-        confettiOpacity={confettiOpacity}
-        allBets={allBets}
-        playerID={playerID}
-        onPress={placeBet}
-      />
-    ))}
-  </View>
-  <View style={styles.gridRow}>
-    {[6, 7, 8, 9, 10, 11].map(index => (
-      <GameItem
-        key={index}
-        index={index}
-        image={itemImages[index]}
-        winnerIndex={winnerIndex}
-        highlightedIndex={highlightedIndex} // ✅ Pass this too
-        gamePhase={gamePhase}
-        confettiOpacity={confettiOpacity}
-        allBets={allBets}
-        playerID={playerID}
-        onPress={placeBet}
-      />
-    ))}
-  </View>
-</View>
-   {/* Winner Announcement */}       
-   {gamePhase === PHASES.RESULT && showResultText && winnerIndex !== null && (
-  <View style={styles.resultContainer}>
-    {isWinner === true ? (
-      <Text style={[styles.resultText, styles.winText]}>
-        You won ₹{bets[winnerIndex] * 10}!
-      </Text>
-    ) : isWinner === false ? (
-      <Text style={[styles.resultText, styles.loseText]}>
-        Better luck next time!
-      </Text>
-    ) : null}
-  </View>
-)}
-
+            <View style={styles.gridRow}>
+              {[0, 1, 2, 3, 4, 5].map(index => (
+                <GameItem
+                  key={index}
+                  index={index}
+                  image={itemImages[index]}
+                  winnerIndex={winnerIndex}
+                  highlightedIndex={highlightedIndex}
+                  gamePhase={gamePhase}
+                  confettiOpacity={confettiOpacity}
+                  allBets={allBets}
+                  playerID={playerID}
+                  onPress={placeBet}
+                />
+              ))}
+            </View>
+            <View style={styles.gridRow}>
+              {[6, 7, 8, 9, 10, 11].map(index => (
+                <GameItem
+                  key={index}
+                  index={index}
+                  image={itemImages[index]}
+                  winnerIndex={winnerIndex}
+                  highlightedIndex={highlightedIndex}
+                  gamePhase={gamePhase}
+                  confettiOpacity={confettiOpacity}
+                  allBets={allBets}
+                  playerID={playerID}
+                  onPress={placeBet}
+                />
+              ))}
+            </View>
+          </View>
+         
+          {/* Winner Announcement */}       
+          {gamePhase === PHASES.RESULT && showResultText && winnerIndex !== null && (
+            <View style={styles.resultContainer}>
+              {isWinner === true ? (
+                <Text style={[styles.resultText, styles.winText]}>
+                  You won ₹{bets[winnerIndex] * 10}!
+                </Text>
+              ) : isWinner === false ? (
+                <Text style={[styles.resultText, styles.loseText]}>
+                  Better luck next time!
+                </Text>
+              ) : null}
+            </View>
+          )}
           
           {/* Bottom Section with Chips and Previous Winner */}
           <View style={styles.bottomSection}>
@@ -363,7 +352,6 @@ const GameScreen = () => {
           </View>
         </View>
         {renderCoinAnimations()}
-
       </ImageBackground>
     </View>
   );

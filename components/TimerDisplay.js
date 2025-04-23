@@ -12,24 +12,5 @@ const TimerDisplay = ({ phaseTimer, scaleAnim, timerColor }) => {
   );
 };
 
-// const styles = StyleSheet.create({
-//   timerContainer: {
-//     width: 70,
-//     height: 70,
-//     borderRadius: 35,
-//     backgroundColor: '#fff',
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     elevation: 5,
-//     shadowColor: '#000',
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//   },
-//   timerText: {
-//     fontSize: 24,
-//     fontWeight: 'bold',
-//   },
-// });
 
 export default TimerDisplay;
