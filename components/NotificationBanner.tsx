@@ -1,17 +1,31 @@
 // components/NotificationBanner.tsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, Animated, Easing, Dimensions, StyleSheet, Image } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  Animated, 
+  Easing, 
+  Dimensions, 
+  StyleSheet, 
+  Image,
+  TouchableOpacity
+} from 'react-native';
+
+interface NotificationMessage {
+  id?: string;
+  action?: string;
+  amount?: string;
+  game?: string;
+}
 
 interface NotificationBannerProps {
   visible?: boolean;
-  message?: {
-    id?: string;
-    action?: string;
-    amount?: string;
-    game?: string;
-  };
+  message?: NotificationMessage;
   duration?: number;
   position?: 'top' | 'bottom';
+  onClose?: () => void;
+  autoHide?: boolean;
+  autoHideDuration?: number;
 }
 
 const NotificationBanner: React.FC<NotificationBannerProps> = ({
@@ -23,23 +37,63 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({
     game: 'Daily Jackpot'
   },
   duration = 15000,
-  position = 'top'
+  position = 'top',
+  onClose,
+  autoHide = false,
+  autoHideDuration = 5000
 }) => {
   const window = Dimensions.get('window');
-  const notificationTranslateX = new Animated.Value(window.width * 0.3);
+  const notificationTranslateX = useRef(new Animated.Value(window.width * 0.3)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
   const [isVisible, setIsVisible] = useState(visible);
+  const animationLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
+  // Handle visibility changes from props
   useEffect(() => {
-    setIsVisible(visible);
-  }, [visible]);
+    if (visible) {
+      setIsVisible(true);
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setIsVisible(false);
+      });
+    }
+  }, [visible, opacityAnim]);
 
+  // Set up auto-hide if enabled
+  useEffect(() => {
+    if (isVisible && autoHide) {
+      const timer = setTimeout(() => {
+        if (onClose) {
+          onClose();
+        } else {
+          setIsVisible(false);
+        }
+      }, autoHideDuration);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, autoHide, autoHideDuration, onClose]);
+
+  // Set up animation
   useEffect(() => {
     if (isVisible) {
-      // Notification banner animation
-      const animationLoop = Animated.loop(
+      // Reset the value to ensure animation starts correctly
+      notificationTranslateX.setValue(window.width * 0.3);
+      
+      // Create animation loop
+      animationLoopRef.current = Animated.loop(
         Animated.sequence([
           Animated.timing(notificationTranslateX, {
-            toValue: -(window.width * 0.9),
+            toValue: -(window.width * 0.8),
             duration: duration,
             useNativeDriver: true,
             easing: Easing.linear,
@@ -52,20 +106,30 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({
         ])
       );
       
-      animationLoop.start();
+      // Start animation
+      animationLoopRef.current.start();
 
       return () => {
-        animationLoop.stop();
-        notificationTranslateX.setValue(window.width * 0.3);
+        if (animationLoopRef.current) {
+          animationLoopRef.current.stop();
+        }
       };
     }
-  }, [isVisible, window.width, duration]);
+  }, [isVisible, window.width, duration, notificationTranslateX]);
 
+  // If component is not visible, don't render anything
   if (!isVisible) return null;
 
   return (
-    <View style={[styles.bannerContainer, position === 'bottom' && styles.bottomPosition]}>
-      <View style={styles.bannerWrapper}>
+    <Animated.View 
+      style={[
+        styles.bannerContainer, 
+        position === 'bottom' ? { bottom: 20 } : { top: 40 },
+        { opacity: opacityAnim }
+      ]}
+      pointerEvents="box-none"
+    >
+      <View style={styles.bannerWrapper} pointerEvents="box-none">
         <View style={styles.notificationBanner}>
           {/* Sound icon positioned at the start */}
           <View style={styles.iconContainer}>
@@ -87,9 +151,15 @@ const NotificationBanner: React.FC<NotificationBannerProps> = ({
             <Text style={styles.whiteText}> in </Text>
             <Text style={styles.orangeText}>{message.game}</Text>
           </Animated.View>
+          
+          {onClose && (
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -100,34 +170,32 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 9999,
     elevation: 10,
-  },
-  
-  bottomPosition: {
-    bottom: 20,
+    pointerEvents: 'box-none',
   },
   bannerWrapper: {
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
+    pointerEvents: 'box-none',
   },
   notificationBanner: {
-    backgroundColor: 'rgba(222, 217, 217, 0.2)',
-    height: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    height: 24,
     width: '60%',
-    borderRadius: 20,
+    borderRadius: 10,
     overflow: 'hidden',
     justifyContent: 'center',
     alignSelf: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 0.1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
   },
   iconContainer: {
     position: 'absolute',
-    left: 10,
+    left: 8,
     zIndex: 10,
     height: '100%',
     justifyContent: 'center',
@@ -143,27 +211,45 @@ const styles = StyleSheet.create({
   tealText: {
     color: '#40E0D0',
     fontWeight: 'bold',
-    fontSize: 16
+    fontSize: 14
   },
   whiteText: {
     color: 'white',
-    fontSize: 16
+    fontSize: 14
   },
   yellowText: {
     color: '#FFD700',
     fontWeight: 'bold',
-    fontSize: 16
-  },
-  soundIcon: {
-    width: 30,
-    height: 30,
-    resizeMode: 'contain',
-    zIndex: 1,
+    fontSize: 14
   },
   orangeText: {
     color: '#FFA500',
     fontWeight: 'bold',
-    fontSize: 16
+    fontSize: 14
+  },
+  soundIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+    zIndex: 1,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    lineHeight: 20,
+    textAlign: 'center',
   }
 });
 

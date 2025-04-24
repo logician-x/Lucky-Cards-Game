@@ -37,8 +37,8 @@ export const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: colors.primary,
-    padding: size(8), // Reduced from 10
-    paddingRight: size(12), // Reduced from 15
+    padding: size(10), // Reduced from 10
+    paddingRight: size(50), // Reduced from 15
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -177,7 +177,7 @@ export const styles = StyleSheet.create({
   iconButton: {
     backgroundColor: colors.accentLight,
     width: size(28), // Reduced from 32
-    height: size(28), // Reduced from 32
+    height: size(24), // Reduced from 32
     borderRadius: size(4),
     alignItems: 'center',
     justifyContent: 'center',
@@ -189,7 +189,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 1.41,
   },
   notificationBanner: {
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(239, 232, 232, 0.8)',
     padding: size(6), // Reduced from 8
     overflow: 'hidden',
     height: size(25), // Reduced from 30
@@ -223,7 +223,7 @@ export const styles = StyleSheet.create({
   backgroundContainer: {
     flex: 1,
     width: '100%',
-    backgroundColor: '#111111',
+    backgroundColor: 'rgba(119, 110, 110, 0.8)',
   },
   mainContent: {
     flexGrow: 1,
@@ -232,41 +232,7 @@ export const styles = StyleSheet.create({
     padding: size(12), // Reduced from 16
     paddingTop: size(15), // Reduced from 20
   },
-  jackpotDisplay: {
-    alignItems: 'center',
-    marginBottom: size(20), // Reduced from 25-30
-  },
-  jackpotLabel: {
-    color: colors.textPrimary,
-    fontSize: size(16), // Reduced
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  jackpotAmount: {
-    color: colors.accentLight,
-    fontSize: size(30), // Reduced
-    fontWeight: 'bold',
-    marginVertical: size(5),
-  },
-  jackpotUpdateText: {
-    color: colors.textSecondary,
-    fontSize: size(11), // Reduced
-    fontStyle: 'italic',
-  },
-  gameCard: {
-    backgroundColor: colors.accent,
-    borderRadius: size(14), // Reduced from 16
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: size(25), // Reduced from 30
-    position: 'relative',
-    elevation: 8,
-    shadowColor: colors.accentLight,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    overflow: 'visible',
-  },
+
  
 
   gameIcon: {
@@ -332,7 +298,7 @@ export const styles = StyleSheet.create({
     borderTopColor: colors.accent,
     elevation: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
+    shadowOffset: { width: 0, height: -1 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
   },

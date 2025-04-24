@@ -268,7 +268,7 @@ const GameScreen = () => {
             
             {/* Phase Banner */}
             <PhaseBanner phase={gamePhase} />
-            
+          
           </View>
           
           {/* Presenter Image */}
@@ -277,11 +277,13 @@ const GameScreen = () => {
             <Image
               source={ladyPresenter} 
               style={styles.ladiesImage}
+              
               resizeMode="contain"
             />
           </View>
-          <NotificationBanner />
+          
           {/* Items Grid */}
+          
           <View style={styles.gridContainer}>
           
             <View style={styles.gridRow}>
@@ -354,6 +356,7 @@ const GameScreen = () => {
           </View>
         </View>
         {renderCoinAnimations()}
+        <NotificationBanner />
       </ImageBackground>
     </View>
   );
