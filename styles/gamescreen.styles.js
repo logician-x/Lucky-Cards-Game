@@ -10,7 +10,7 @@ export const styles = StyleSheet.create({
       flex: 1,
       paddingTop: 0,
       paddingRight: 0,
-      paddingBottom: 10,
+      paddingBottom: 0,
       paddingLeft: 0,
     },
     background: {
@@ -20,8 +20,8 @@ export const styles = StyleSheet.create({
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: 5,
-      marginBottom: 5,
+      paddingVertical: 0,
+      marginBottom: 0,
     },
     hamburgerButton: {
       width: 40,
@@ -143,10 +143,10 @@ export const styles = StyleSheet.create({
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 40,
+      marginTop: 0,
     },
     gridRow: {
-      marginTop: 100,
+      marginTop: 0,
       flexDirection: 'row',
       justifyContent: 'center',
       marginVertical: 3,
@@ -163,12 +163,7 @@ export const styles = StyleSheet.create({
       margin: 7,
       overflow: 'hidden',
     },
-    winnerItem: {
-      borderColor: '#ff4b5c',
-      borderWidth: 3,
-      backgroundColor: '#fff9fa',
-      transform: [{ scale: 1.15 }],
-    },
+  
     itemImage: {
       width: '100%',
       height: '100%',
@@ -225,17 +220,22 @@ export const styles = StyleSheet.create({
     bottomSection: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
       paddingHorizontal: 0,
       marginBottom: 10,
+      position: 'absolute',
+      bottom: 10,
+      left: 0,
+      right: 0,
     },
     chipSelectionContainer: {
       backgroundColor: 'rgba(236, 221, 221, 0.5)',
       borderRadius: 10,
       borderWidth: 2,
       borderColor: '#FFD700',
-      marginLeft: width > 400 ? 130 : width * 0.32,
-      marginTop: 160,
-      width: width > 400 ? 600 : width * 0.65,
+      alignSelf: 'center',
+      width: width * 0.65,
+      maxWidth: 600,
     },
     chipSelectionRow: {
       flexDirection: 'row',
@@ -277,13 +277,24 @@ export const styles = StyleSheet.create({
       fontWeight: 'bold',
       fontSize: 12,
     },
+    // Responsive previous winner container on right side
+    previousWinnerContainerRight: {
+      position: 'absolute',
+      right: width * 0.06,  // 5% from right edge
+      top: '50%',
+      transform: [{ translateY: -60 }],  // Center vertically with offset
+      zIndex: 90,
+      width: width * 0.12,  // 12% of screen width
+      maxWidth: 120,        // Maximum width
+      minWidth: 80,         // Minimum width
+    },
     previousWinnerContainer: {
-      marginBottom: 100,
-      marginLeft: 15,
-      backgroundColor: 'rgba(123, 125, 125, 0.5)',
+      backgroundColor: 'rgba(90, 235, 235, 0.5)',
       borderRadius: 10,
-      padding: 0,
+      padding: 5,
       alignItems: 'center',
+      borderWidth: 2,
+      borderColor: '#FFD700',
     },
     previousWinnerTitle: {
       color: 'red',
@@ -340,25 +351,81 @@ export const styles = StyleSheet.create({
     loseText: {
       color: '#666',
     },
-    resetBanner: {
-      position: 'absolute',
-      top: '30%',
-      alignSelf: 'center',
-      backgroundColor: 'rgba(0,0,0,0.8)',
-      paddingHorizontal: 40,
-      paddingVertical: 15,
-      borderRadius: 30,
-      zIndex: 100,
-    },
-    resetBannerText: {
-      color: 'white',
-      fontSize: 20,
-      fontWeight: 'bold',
-    },
+   
     highlightedItem: {
       borderWidth: 3,
       borderColor: 'gold',
       borderRadius: 12,
       backgroundColor: '#fff7cc',
     },
+    modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+modalContainer: {
+  width: '80%',
+  maxWidth: 400,
+},
+modalBox: {
+  backgroundColor: '#222',
+  borderRadius: 10,
+  padding: 20,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+  position: 'relative',
+},
+closeModalButton: {
+  position: 'absolute',
+  top: 10,
+  right: 10,
+  width: 30,
+  height: 30,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+closeModalText: {
+  color: '#999',
+  fontSize: 20,
+  fontWeight: 'bold',
+},
+modalContent: {
+  paddingTop: 15,
+  paddingBottom: 5,
+},
+modalTitle: {
+  fontSize: 22,
+  fontWeight: 'bold',
+  color: 'white',
+  marginBottom: 15,
+  textAlign: 'center',
+},
+modalText: {
+  fontSize: 16,
+  color: '#DDD',
+  marginBottom: 20,
+  lineHeight: 24,
+},
+modalButton: {
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 5,
+  backgroundColor: '#333',
+  marginHorizontal: 5,
+  alignItems: 'center',
+},
+primaryButton: {
+  backgroundColor: '#4A90E2',
+},
+modalButtonText: {
+  color: '#DDD',
+  fontSize: 16,
+},
+primaryButtonText: {
+  color: 'white',
+},
 });

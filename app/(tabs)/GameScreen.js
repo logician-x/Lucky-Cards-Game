@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+
 import { 
   ImageBackground, View, Animated, 
   Text, Image, TouchableOpacity, StatusBar, Alert 
@@ -268,24 +269,28 @@ const GameScreen = () => {
             
             {/* Phase Banner */}
             <PhaseBanner phase={gamePhase} />
-          
           </View>
           
           {/* Presenter Image */}
           <View style={styles.ladiesContainer}>
-        
             <Image
               source={ladyPresenter} 
               style={styles.ladiesImage}
-              
               resizeMode="contain"
             />
           </View>
           
+          {/* Previous Winner Display - Positioned at right side */}
+          <View style={styles.previousWinnerContainerRight}>
+            <PreviousWinner
+              prevWinnerIndex={prevWinnerIndex}
+              previousWinners={previousWinners}
+              winnersCount={winnersCount}
+            />
+          </View>
+          
           {/* Items Grid */}
-          
           <View style={styles.gridContainer}>
-          
             <View style={styles.gridRow}>
               {[0, 1, 2, 3, 4, 5].map(index => (
                 <GameItem
@@ -335,9 +340,8 @@ const GameScreen = () => {
             </View>
           )}
           
-          {/* Bottom Section with Chips and Previous Winner */}
+          {/* Bottom Section with Chips */}
           <View style={styles.bottomSection}>
-            {/* Chip Selection */}
             <ChipSelection
               selectedChip={selectedChip}
               onSelectChip={setSelectedChip}
@@ -345,13 +349,6 @@ const GameScreen = () => {
               totalBetAmount={totalBetAmount}
               onClearBets={clearAllBets}
               isDisabled={gamePhase !== PHASES.BETTING}
-            />
-            
-            {/* Previous Winner Display */}
-            <PreviousWinner
-              prevWinnerIndex={prevWinnerIndex}
-              previousWinners={previousWinners}
-              winnersCount={winnersCount}
             />
           </View>
         </View>

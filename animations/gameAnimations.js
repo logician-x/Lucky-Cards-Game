@@ -520,87 +520,80 @@ export const animateHighlightAcrossOptions = (setHighlightedIndex, winnerIndex, 
     console.warn("Warning: setHighlightedIndex is not a function in animateHighlightAcrossOptions");
     return;
   }
-  
+
   try {
     const totalOptions = 12;
-    const totalAnimationTime = 3000; // 4 seconds in milliseconds
-    
+    const totalAnimationTime = 3000; // 3 seconds in milliseconds
+
     // Parameters for animation pacing
-    const initialDelay = 120; // Start with moderate speed
-    const minDelay = 40;      // Fastest animation speed
-    const finalDelay = 200;   // Slow to a stop
-    
-    // Define animation phases (proportions of total time)
-    const accelerationProportion = 0.25; // First 25% of time
-    const steadyProportion = 0.35;       // Next 35% of time
-    const decelerationProportion = 0.4;  // Final 40% of time
-    
+    const initialDelay = 120;
+    const minDelay = 40;
+    const finalDelay = 200;
+
+    const accelerationProportion = 0.25;
+    const steadyProportion = 0.35;
+    const decelerationProportion = 0.4;
+
     let startTime = null;
     let currentIndex = 0;
     let lastUpdateTime = 0;
-    
+
     const runHighlight = (timestamp) => {
       if (!startTime) startTime = timestamp;
       const elapsedTime = timestamp - startTime;
-      
+
       if (elapsedTime >= totalAnimationTime) {
-        // Animation complete - ensure we end on winner
         setHighlightedIndex(winnerIndex);
-        
-        if (onComplete && typeof onComplete === 'function') {
-          setTimeout(onComplete, 100);
-        }
+
+        // After short delay, clear the highlight
+        setTimeout(() => {
+          setHighlightedIndex(null);
+          if (onComplete && typeof onComplete === 'function') {
+            onComplete();
+          }
+        }, 600); // Adjust delay if needed
+
         return;
       }
-      
-      // Calculate progress through animation (0 to 1)
+
       const progress = elapsedTime / totalAnimationTime;
       let currentDelay;
-      
+
       if (progress < accelerationProportion) {
-        // Acceleration phase
         const phaseProgress = progress / accelerationProportion;
         currentDelay = initialDelay - (initialDelay - minDelay) * Math.pow(phaseProgress, 2);
       } else if (progress < accelerationProportion + steadyProportion) {
-        // Steady phase
         currentDelay = minDelay;
       } else {
-        // Deceleration phase
         const phaseProgress = (progress - accelerationProportion - steadyProportion) / decelerationProportion;
         currentDelay = minDelay + (finalDelay - minDelay) * Math.pow(phaseProgress, 2);
       }
-      
-      // Check if enough time has passed since last update based on current delay
+
       if (timestamp - lastUpdateTime >= currentDelay) {
-        // Calculate the correct position dynamically
         if (progress > 0.85) {
-          // In final phase, ensure we're approaching the winner
           const remainingSteps = Math.max(1, Math.round((totalAnimationTime - elapsedTime) / currentDelay));
           const stepsToWinner = (totalOptions + winnerIndex - currentIndex % totalOptions) % totalOptions;
-          
-          // Adjust the index to ensure we end on winner
+
           if (remainingSteps <= stepsToWinner) {
             currentIndex = (winnerIndex - remainingSteps + totalOptions) % totalOptions;
           }
         }
-        
-        // Update highlighted index
+
         const indexToHighlight = currentIndex % totalOptions;
         setHighlightedIndex(indexToHighlight);
         currentIndex++;
         lastUpdateTime = timestamp;
       }
-      
-      // Continue animation
+
       requestAnimationFrame(runHighlight);
     };
-    
-    // Start the animation process using requestAnimationFrame for smoother timing
+
     requestAnimationFrame(runHighlight);
   } catch (error) {
     console.warn("Error in animateHighlightAcrossOptions:", error);
   }
 };
+
 
 // Enhanced reset animation
 export const animateReset = (resetFade, shakeAnimation) => {

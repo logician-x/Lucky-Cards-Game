@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFD700',
     borderWidth: 4,
     backgroundColor: 'rgba(255, 215, 0, 0.3)',
-    transform: [{ scale: 1.05 }],
+    transform: [{ scale: 1.5 }],
   },
   itemImage: {
     width: 60,

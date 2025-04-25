@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, TouchableOpacity, Text, Image, StyleSheet, Animated, Easing } from 'react-native';
 import { coinImages } from '../constants/imageAssets';
-import { styles } from '../styles/gamescreen.styles';
+import { styles } from '../styles/chipSelection.styles';
 
 const ChipSelection = ({
   selectedChip,
@@ -9,42 +9,47 @@ const ChipSelection = ({
   walletBalance,
   totalBetAmount,
   onClearBets,
-  isDisabled
+  isDisabled,
+  isActiveBetting = false,
+  gameItems = [] // Array of game items with {x, y} coordinates
 }) => {
   return (
-    <View style={styles.chipSelectionContainer}>
-      <View style={styles.chipSelectionRow}>
-        {Object.entries(coinImages).map(([value, image]) => (
-          <TouchableOpacity
-            key={value}
-            style={[
-              styles.chipButton,
-              selectedChip === parseInt(value) ? styles.selectedChip : null,
-              walletBalance < parseInt(value) ? styles.disabledChip : null
-            ]}
-            onPress={() => onSelectChip(parseInt(value))}
-            disabled={walletBalance < parseInt(value) || isDisabled}
-          >
-            <Image source={image} style={styles.chipImage} />
-          </TouchableOpacity>
-        ))}
-      </View>
-      
-      {/* Clear Bets Button */}
-      <TouchableOpacity
-        style={[
-          styles.clearButton,
-          totalBetAmount === 0 ? styles.disabledClearButton : null
-        ]}
-        onPress={onClearBets}
-        disabled={isDisabled || totalBetAmount === 0}
-      >
-        <Text style={styles.clearButtonText}>Rebet</Text>
-      </TouchableOpacity>
+    <>
+     <View style={styles.chipSelectionContainer}>
+  <View style={styles.rowWithButton}>
+    <View style={styles.chipSelectionRow}>
+      {Object.entries(coinImages).map(([value, image]) => (
+        <TouchableOpacity
+          key={value}
+          style={[
+            styles.chipButton,
+            selectedChip === parseInt(value) ? styles.selectedChip : null,
+            walletBalance < parseInt(value) ? styles.disabledChip : null
+          ]}
+          onPress={() => onSelectChip(parseInt(value))}
+          disabled={walletBalance < parseInt(value) || isDisabled}
+        >
+          <Image source={image} style={styles.chipImage} />
+        </TouchableOpacity>
+      ))}
     </View>
+
+    <TouchableOpacity
+      style={[
+        styles.clearButton,
+        totalBetAmount === 0 ? styles.disabledClearButton : null
+      ]}
+      onPress={onClearBets}
+      disabled={isDisabled || totalBetAmount === 0}
+    >
+      <Text style={styles.clearButtonText}>Rebet</Text>
+    </TouchableOpacity>
+  </View>
+</View>
+      
+     
+    </>
   );
 };
-
-
 
 export default ChipSelection;
