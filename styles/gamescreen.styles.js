@@ -74,40 +74,76 @@ export const styles = StyleSheet.create({
       fontSize: 16,
     },
     walletContainer: {
+  backgroundColor: '#8B0000', // Deeper red for a more intense gaming feel
+  flexDirection: 'row',
+  alignItems: 'center',
+  position: 'absolute',
+  top: 166,
+  left: width > 400 ? 150 : width / 2,
+  paddingVertical: 7
+  ,
+  paddingHorizontal: 0,
+  borderRadius: 20,
+  borderWidth: 0,
+  borderColor: '#FFD700', // Gold border for a premium feel
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.6,
+  shadowRadius: 5,
+  elevation: 8,
+  zIndex: 99,
+},
+
+walletIcon: {
+  width: 40,
+  height: 40,
+  resizeMode: 'contain',
+  marginRight: 0,
+},
+
+walletText: {
+  color: '#FFD700', // Bright Gold
+  fontWeight: 'bold',
+  fontSize: 18,
+  fontFamily: 'serif', // More royal, game-style font
+  textShadowColor: '#000',
+  textShadowOffset: { width: 1, height: 1 },
+  textShadowRadius: 2,
+},
+
+    addButton: {
+      top: 10,
+      marginLeft: 730,
+      backgroundColor: '#8B0000', // Dark red
+      paddingVertical: 6,
+      paddingHorizontal: 16,
+      borderRadius: 10,
       flexDirection: 'row',
       alignItems: 'center',
-      position: 'absolute',
-      top: 20,
-      left: width > 400 ? 200 : width / 2,
-      zIndex: 99,
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.5,
+      shadowRadius: 2,
+      elevation: 5,
     },
-    walletIcon: {
-      width: 40,
-      height: 40,
-      marginRight: 10,
-      resizeMode: 'contain',
-    },
-    walletText: {
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: 16,
-    },
-    addButton: {
-      marginLeft: 10,
-      backgroundColor: '#ff4085', // pinkish red 
-      paddingVertical: 5,
-      paddingHorizontal: 12,
-      borderRadius: 8,
+    addButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     addButtonText: {
-      color: '#fff',
+      color: '#FFD700', // Gold
       fontWeight: 'bold',
-      fontSize: 14,
+      fontSize: 16,
+      fontFamily: 'serif', // Slightly fancy font
+      marginRight: 6,
+    },
+    coinIcon: {
+      width: 25,
+      height: 20,
     },
     timerContainer: {
       position: 'absolute',
-      top: 20,
+      top: 70,
       right: width > 400 ? 325 : width - 75,
       width: 40,
       height: 40,
@@ -143,13 +179,13 @@ export const styles = StyleSheet.create({
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 0,
+      marginBottom: 30,
     },
     gridRow: {
       marginTop: 0,
       flexDirection: 'row',
       justifyContent: 'center',
-      marginVertical: 3,
+      marginVertical: 5,
     },
     itemContainer: {
       width: itemSize,
@@ -228,55 +264,7 @@ export const styles = StyleSheet.create({
       left: 0,
       right: 0,
     },
-    chipSelectionContainer: {
-      backgroundColor: 'rgba(236, 221, 221, 0.5)',
-      borderRadius: 10,
-      borderWidth: 2,
-      borderColor: '#FFD700',
-      alignSelf: 'center',
-      width: width * 0.65,
-      maxWidth: 600,
-    },
-    chipSelectionRow: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexWrap: 'wrap',
-      height: 20,
-    },
-    chipButton: {
-      marginTop: 0,
-      marginLeft: 10,
-      alignItems: 'center',
-      marginHorizontal: 0,
-      marginVertical: 2,
-      opacity: 10,
-    },
-    selectedChip: {
-      opacity: 1,
-      transform: [{ scale: 1.75 }],
-      elevation: 5, // For Android
-    },
-    disabledChip: {
-      opacity: 0.4,
-    },
-    chipImage: {
-      width: 60,
-      height: 60,
-      resizeMode: 'contain',
-    },
-    clearButton: {
-      backgroundColor: '#ff4b5c',
-      padding: 8,
-      borderRadius: 20,
-      alignSelf: 'flex-start',
-      marginTop: 5,
-    },
-    clearButtonText: {
-      color: 'white',
-      fontWeight: 'bold',
-      fontSize: 12,
-    },
+   
     // Responsive previous winner container on right side
     previousWinnerContainerRight: {
       position: 'absolute',
@@ -428,4 +416,14 @@ modalButtonText: {
 primaryButtonText: {
   color: 'white',
 },
+treasureImage: {
+  position: 'absolute',
+  width: 100,
+  height: 100,
+  resizeMode: 'contain',
+},
+coin: {
+  position: 'absolute',
+  resizeMode: 'contain',
+}
 });

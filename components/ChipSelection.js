@@ -17,6 +17,7 @@ const ChipSelection = ({
     <>
      <View style={styles.chipSelectionContainer}>
   <View style={styles.rowWithButton}>
+  
     <View style={styles.chipSelectionRow}>
       {Object.entries(coinImages).map(([value, image]) => (
         <TouchableOpacity

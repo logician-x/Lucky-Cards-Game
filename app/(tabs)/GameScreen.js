@@ -54,7 +54,14 @@ const GameScreen = () => {
   const walletRef = useRef();
   const animations = setupAnimations();
   const { scaleAnim, winnerScale, confettiOpacity, resetFade } = animations;
+  const [gameItemLayouts, setGameItemLayouts] = useState(Array(12).fill(null));
 
+// Add this function to handle layout updates from GameItems
+const handleGameItemLayout = (index, layout) => {
+  const newLayouts = [...gameItemLayouts];
+  newLayouts[index] = layout;
+  setGameItemLayouts(newLayouts);
+};
   // Initialize all bets structure
   useEffect(() => {
     const initialAllBets = {};
@@ -257,15 +264,16 @@ const GameScreen = () => {
               scaleAnim={scaleAnim} 
               timerColor={timerColor()} 
             />
-            
-            {/* Wallet */}
-            <View ref={walletRef} style={styles.walletContainer}>
-              <Image source={walletIcon} style={styles.walletIcon} />
-              <Text style={styles.walletText}>₹ {walletBalance}</Text>
-              <TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
-               <Text style={styles.addButtonText}>Add</Text>
-              </TouchableOpacity>
-            </View>
+             
+<TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
+  <View style={styles.addButtonContent}>
+    <Text style={styles.addButtonText}>ADD</Text>
+    <Image
+      source={require('../../assets/images/coin1.png')} // Replace with your coin image path
+      style={styles.coinIcon}
+    />
+  </View>
+</TouchableOpacity>
             
             {/* Phase Banner */}
             <PhaseBanner phase={gamePhase} />
@@ -304,6 +312,7 @@ const GameScreen = () => {
                   allBets={allBets}
                   playerID={playerID}
                   onPress={placeBet}
+                  
                 />
               ))}
             </View>
@@ -320,6 +329,7 @@ const GameScreen = () => {
                   allBets={allBets}
                   playerID={playerID}
                   onPress={placeBet}
+               
                 />
               ))}
             </View>
@@ -350,8 +360,15 @@ const GameScreen = () => {
               onClearBets={clearAllBets}
               isDisabled={gamePhase !== PHASES.BETTING}
             />
+              {/* Wallet */}
+              <View ref={walletRef} style={styles.walletContainer}>
+              <Image source={walletIcon} style={styles.walletIcon} />
+              <Text style={styles.walletText}>₹ {walletBalance}</Text>
+           
+            </View>
           </View>
         </View>
+  
         {renderCoinAnimations()}
         <NotificationBanner />
       </ImageBackground>

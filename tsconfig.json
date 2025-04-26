@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "app/(tabs)/GameScreen.js", "app/(tabs)/PhaseBanner.js", "components/PhaseBanner.js", "components/Sidebar.js"  ]
+, "app/(tabs)/GameScreen.js", "app/(tabs)/PhaseBanner.js", "components/PhaseBanner.js", "components/Sidebar.js", "components/CoinRainEffect.js"  ]
 }

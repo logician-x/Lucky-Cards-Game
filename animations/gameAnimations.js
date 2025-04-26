@@ -6,13 +6,13 @@ let coinSound;
 // Position the winning option, e.g., 80% from the left, 40% from the top
 const winningOptionPosition = {
  x: width / 1.90,
-  y: height / 1.95,
+  y: height / 1.90,
 };
 
 // Position the wallet, e.g., center-top
 const walletPosition = {
-  x: width * 0.35,
-  y: height * 0.07,
+  x: width * 0.20,
+  y: height * 0.815,
 };
 
 let coinAnimRefs = [];

@@ -13,7 +13,7 @@ import crow from '../assets/images/crow.jpg';
 import rabbit from '../assets/images/rabbit.jpg';
 import coin from '../assets/images/coin.png';
 import coin1 from '../assets/images/coin1.png';
-import walletIcon from '../assets/images/wallet.png';
+import walletIcon from '../assets/images/avtar.png';
 import ladyPresenter from '../assets/images/lady.png';
 import backgroundImage from '../assets/images/bg.jpg';
 
