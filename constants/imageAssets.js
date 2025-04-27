@@ -16,7 +16,8 @@ import coin1 from '../assets/images/coin1.png';
 import walletIcon from '../assets/images/avtar.png';
 import ladyPresenter from '../assets/images/lady.png';
 import backgroundImage from '../assets/images/bg.jpg';
-
+export const coinImage = require('../assets/images/coin1.png');
+export const coinBagImage = require('../assets/images/avtar.png');
 // Item images array
 export const itemImages = [
   umbrella, football, sun, diva, cow, bucket,

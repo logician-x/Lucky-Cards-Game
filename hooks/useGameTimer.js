@@ -73,8 +73,8 @@ export default function useGameTimer(onPhaseChange, onDetermineWinner) {
   
   // Determine timer color based on phase
   const timerColor = () => {
-    if (timer > 8) return '#ff6b8b'; // Pink for betting phase
-    if (timer > 3) return '#ffc107'; // Yellow for result phase
+    if (timer > 8) return '#00ff00'; // Pink for betting phase
+    if (timer > 3) return '#ffd700'; // Yellow for result phase
     return '#ff4b5c'; // Red for reset phase
   };
   

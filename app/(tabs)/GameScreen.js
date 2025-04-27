@@ -13,10 +13,11 @@ import PreviousWinner from '../../components/PreviousWinner';
 import ChipSelection from '../../components/ChipSelection';
 import TimerDisplay from '../../components/TimerDisplay';
 import NotificationBanner from '../../components/NotificationBanner';
+import CoinAnimation from '../../components/CoinAnimation'; // Import the new component
 
 // Constants, hooks, and styles
 import { PHASES, itemNames } from '../../constants/gameConstants';
-import { itemImages, walletIcon, ladyPresenter, backgroundImage } from '../../constants/imageAssets';
+import { itemImages, walletIcon, ladyPresenter, backgroundImage, coinImage, coinBagImage } from '../../constants/imageAssets';
 import useGameTimer from '../../hooks/useGameTimer';
 import { styles } from '../../styles/gamescreen.styles';
 import { renderCoinAnimations } from '../../animations/gameAnimations';
@@ -54,14 +55,7 @@ const GameScreen = () => {
   const walletRef = useRef();
   const animations = setupAnimations();
   const { scaleAnim, winnerScale, confettiOpacity, resetFade } = animations;
-  const [gameItemLayouts, setGameItemLayouts] = useState(Array(12).fill(null));
 
-// Add this function to handle layout updates from GameItems
-const handleGameItemLayout = (index, layout) => {
-  const newLayouts = [...gameItemLayouts];
-  newLayouts[index] = layout;
-  setGameItemLayouts(newLayouts);
-};
   // Initialize all bets structure
   useEffect(() => {
     const initialAllBets = {};
@@ -265,15 +259,15 @@ const handleGameItemLayout = (index, layout) => {
               timerColor={timerColor()} 
             />
              
-<TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
-  <View style={styles.addButtonContent}>
-    <Text style={styles.addButtonText}>ADD</Text>
-    <Image
-      source={require('../../assets/images/coin1.png')} // Replace with your coin image path
-      style={styles.coinIcon}
-    />
-  </View>
-</TouchableOpacity>
+            <TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
+              <View style={styles.addButtonContent}>
+                <Text style={styles.addButtonText}>ADD</Text>
+                <Image
+                  source={require('../../assets/images/coin1.png')} // Replace with your coin image path
+                  style={styles.coinIcon}
+                />
+              </View>
+            </TouchableOpacity>
             
             {/* Phase Banner */}
             <PhaseBanner phase={gamePhase} />
@@ -312,7 +306,6 @@ const handleGameItemLayout = (index, layout) => {
                   allBets={allBets}
                   playerID={playerID}
                   onPress={placeBet}
-                  
                 />
               ))}
             </View>
@@ -329,7 +322,6 @@ const handleGameItemLayout = (index, layout) => {
                   allBets={allBets}
                   playerID={playerID}
                   onPress={placeBet}
-               
                 />
               ))}
             </View>
@@ -360,17 +352,23 @@ const handleGameItemLayout = (index, layout) => {
               onClearBets={clearAllBets}
               isDisabled={gamePhase !== PHASES.BETTING}
             />
-              {/* Wallet */}
-              <View ref={walletRef} style={styles.walletContainer}>
+            {/* Wallet */}
+            <View ref={walletRef} style={styles.walletContainer}>
               <Image source={walletIcon} style={styles.walletIcon} />
               <Text style={styles.walletText}>₹ {walletBalance}</Text>
-           
             </View>
           </View>
         </View>
   
         {renderCoinAnimations()}
         <NotificationBanner />
+        
+        {/* Add the CoinAnimation component here */}
+        <CoinAnimation 
+          coinImage={coinImage} // You'll need to add this to your imageAssets
+          sourceImage={coinBagImage} // You'll need to add this to your imageAssets
+          gamePhase={gamePhase} 
+        />
       </ImageBackground>
     </View>
   );
