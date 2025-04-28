@@ -1,5 +1,5 @@
 // src/screens/SettingsScreen.tsx
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -20,23 +20,27 @@ export const SettingsScreen = () => {
     language,
     setLanguage,
     playButtonSound,
-    soundsLoaded,
+    soundEnabled
   } = useAppContext();
   
   const styles = useResponsiveStyles();
   const t = translations[language];
   
   const handleBackPress = () => {
-    playButtonSound();
+    // Only play sound if sound is enabled
+    if (soundEnabled) {
+      playButtonSound();
+    }
     navigation.goBack();
   };
   
   const handleLanguageChange = (lang: 'english' | 'hindi') => {
-    playButtonSound();
+    // Only play sound if sound is enabled
+    if (soundEnabled) {
+      playButtonSound();
+    }
     setLanguage(lang);
   };
-  
-  // Remove the unconditional sound playback that was here before
   
   return (
     <View style={styles.settingsContainer}>
