@@ -367,7 +367,8 @@ const GameScreen = () => {
         <CoinAnimation 
           coinImage={coinImage} // You'll need to add this to your imageAssets
           sourceImage={coinBagImage} // You'll need to add this to your imageAssets
-          gamePhase={gamePhase} 
+          gamePhase={gamePhase
+          } 
         />
       </ImageBackground>
     </View>

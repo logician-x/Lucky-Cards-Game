@@ -39,8 +39,24 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
   const resetCircleScale = useRef(new Animated.Value(0)).current;
   const resetCircleOpacity = useRef(new Animated.Value(0.8)).current;
   
+  // NEW: Full-screen overlay for new game animation
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const overlayScale = useRef(new Animated.Value(0.8)).current;
+  
+  // NEW: Wave animations
+  const waveAnim1 = useRef(new Animated.Value(0)).current;
+  const waveAnim2 = useRef(new Animated.Value(0)).current;
+  const waveAnim3 = useRef(new Animated.Value(0)).current;
+  
+  // NEW: Star burst animation value
+  const burstScale = useRef(new Animated.Value(0)).current;
+  const burstOpacity = useRef(new Animated.Value(0)).current;
+  
   // Fix: Properly initialize particleValues with array of animation values
   const particleValues = useRef([]);
+  
+  // NEW: Large particles for full-screen effect
+  const largeParticleValues = useRef([]);
   
   // Initialize particle animations on first render
   useEffect(() => {
@@ -48,6 +64,15 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
       translateX: new Animated.Value(0),
       translateY: new Animated.Value(0),
       rotate: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+    }));
+    
+    // NEW: Initialize large particles for full-screen effect
+    largeParticleValues.current = Array(20).fill().map(() => ({
+      translateX: new Animated.Value(0),
+      translateY: new Animated.Value(0),
+      rotate: new Animated.Value(0),
+      scale: new Animated.Value(0),
       opacity: new Animated.Value(0),
     }));
   }, []);
@@ -65,6 +90,8 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
   const [showCenterText, setShowCenterText] = useState(false);
   // Reset animation visibility state
   const [showResetAnimation, setShowResetAnimation] = useState(false);
+  // NEW: Full-screen animation state
+  const [showFullScreenAnimation, setShowFullScreenAnimation] = useState(false);
   
   // Previous phase tracking
   const prevPhaseRef = useRef(null);
@@ -130,8 +157,8 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
           // Show NEW_GAME message when entering reset phase
           console.log('Phase changed to reset, showing NEW_GAME');
           showMessage(MESSAGE_TYPES.NEW_GAME);
-          // Start the reset animation
-          playResetAnimation();
+          // Start the full screen animation first, then the reset animation
+          playFullScreenAnimation();
           break;
       }
     }
@@ -177,10 +204,10 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
       console.log('Center text animation completed');
     });
     
-    // Show message for 1 second
+    // Show message for longer (1.5s) for NEW_GAME to match with the animation
     setTimeout(() => {
       hideMessage();
-    }, 1000);
+    }, type === MESSAGE_TYPES.NEW_GAME ? 1500 : 1000);
   };
 
   // Hide message with animation
@@ -208,7 +235,221 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
     });
   };
   
-  // Play reset phase animation
+  // NEW: Play full-screen animation for new game
+  const playFullScreenAnimation = () => {
+    console.log('Playing full-screen new game animation');
+    
+    // Show full-screen animation
+    setShowFullScreenAnimation(true);
+    
+    // Reset animation values
+    overlayOpacity.setValue(0);
+    overlayScale.setValue(0.8);
+    waveAnim1.setValue(0);
+    waveAnim2.setValue(0);
+    waveAnim3.setValue(0);
+    burstScale.setValue(0);
+    burstOpacity.setValue(0);
+    
+    // Reset large particle values
+    largeParticleValues.current.forEach(particle => {
+      particle.translateX.setValue(0);
+      particle.translateY.setValue(0);
+      particle.rotate.setValue(0);
+      particle.scale.setValue(0);
+      particle.opacity.setValue(0);
+    });
+    
+    // Create staggered wave animations
+    const waveAnimations = [
+      // First wave
+      Animated.sequence([
+        Animated.timing(waveAnim1, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(waveAnim1, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }),
+      ]),
+      // Second wave with delay
+      Animated.sequence([
+        Animated.delay(200),
+        Animated.timing(waveAnim2, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(waveAnim2, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }),
+      ]),
+      // Third wave with delay
+      Animated.sequence([
+        Animated.delay(400),
+        Animated.timing(waveAnim3, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(waveAnim3, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }),
+      ]),
+    ];
+    
+    // Create burst animation
+    const burstAnimation = Animated.sequence([
+      Animated.delay(300),
+      Animated.parallel([
+        Animated.timing(burstScale, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(burstOpacity, {
+          toValue: 0.8,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.timing(burstOpacity, {
+        toValue: 0,
+        duration: 1200,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]);
+    
+    // Create overlay animation
+    const overlayAnimation = Animated.sequence([
+      Animated.parallel([
+        Animated.timing(overlayOpacity, {
+          toValue: 0.7,
+          duration: 500,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }),
+        Animated.spring(overlayScale, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.delay(2000),
+      Animated.timing(overlayOpacity, {
+        toValue: 0,
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]);
+    
+    // Create large particle animations
+    const largeParticleAnimations = largeParticleValues.current.map((particle, index) => {
+      // Calculate random angle
+      const angle = Math.random() * Math.PI * 2;
+      // Random distance (further than small particles)
+      const distance = 200 + Math.random() * 500;
+      // Calculate end positions
+      const endX = Math.cos(angle) * distance;
+      const endY = Math.sin(angle) * distance;
+      // Random rotation and scale
+      const rotation = Math.random() * 720 - 360; // -360 to 360 degrees
+      const maxScale = 0.5 + Math.random() * 2.5; // 0.5 to 3.0
+      
+      return Animated.sequence([
+        // Staggered delay
+        Animated.delay(index * 50 + 100),
+        Animated.parallel([
+          // Translation X
+          Animated.timing(particle.translateX, {
+            toValue: endX,
+            duration: 2000 + Math.random() * 1000,
+            easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+            useNativeDriver: true,
+          }),
+          // Translation Y
+          Animated.timing(particle.translateY, {
+            toValue: endY,
+            duration: 2000 + Math.random() * 1000,
+            easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+            useNativeDriver: true,
+          }),
+          // Rotation
+          Animated.timing(particle.rotate, {
+            toValue: rotation,
+            duration: 2000 + Math.random() * 1000,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          // Scale up and down
+          Animated.sequence([
+            // Scale up
+            Animated.timing(particle.scale, {
+              toValue: maxScale,
+              duration: 500,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+            // Scale down
+            Animated.timing(particle.scale, {
+              toValue: 0,
+              duration: 1500,
+              easing: Easing.in(Easing.cubic),
+              useNativeDriver: true,
+            }),
+          ]),
+          // Opacity (appear then fade)
+          Animated.sequence([
+            // Appear
+            Animated.timing(particle.opacity, {
+              toValue: 0.9,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            // Hold
+            Animated.delay(800),
+            // Fade
+            Animated.timing(particle.opacity, {
+              toValue: 0,
+              duration: 1000,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+          ]),
+        ]),
+      ]);
+    });
+    
+    // Run all animations together
+    Animated.parallel([
+      ...waveAnimations,
+      burstAnimation,
+      overlayAnimation,
+      ...largeParticleAnimations,
+    ]).start(() => {
+      console.log('Full-screen animation completed');
+      setShowFullScreenAnimation(false);
+    });
+  };
+  
+  // Play reset phase animation (original version)
   const playResetAnimation = () => {
     console.log('Playing reset animation');
     
@@ -233,21 +474,7 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
     // Show reset animation
     setShowResetAnimation(true);
     
-    // Create main circle expansion animation with improved timing
-    const circleExpansion = Animated.sequence([
-      Animated.timing(resetCircleScale, {
-        toValue: 1,
-        duration: 3000, // Slightly longer for smoother expansion
-        easing: Easing.bezier(0.16, 1, 0.3, 1), // Custom bezier curve for more natural animation
-        useNativeDriver: true,
-      }),
-      Animated.timing(resetCircleOpacity, {
-        toValue: 0,
-        duration: 500, // Longer fade for smoother transition
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]);
+    
     
     // Create staggered particle animations
     const particleAnimations = particleValues.current.map((particle, index) => {
@@ -305,11 +532,6 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
       ]);
     });
     
-    // Run all animations in parallel
-    resetAnimRef.current = Animated.parallel([
-      circleExpansion,
-      ...particleAnimations,
-    ]);
     
     // Start animations and clean up after completion
     resetAnimRef.current.start(() => {
@@ -344,6 +566,7 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
           soundFile = require('../assets/sounds/stop_betting.mp3');
           break;
         case MESSAGE_TYPES.NEW_GAME:
+          // Enhanced sound for new game
           soundFile = require('../assets/sounds/buttonClick.mp3');
           break;
         default:
@@ -377,68 +600,215 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
   
   // Generate random particle colors for variety
   const getRandomParticleColor = () => {
-    const colors = ['#2F9DFF', '#FFD700', '#FF6347', '#7FFFD4', '#9370DB'];
+    const colors = ['#2F9DFF', '#FFD700', '#FF6347', '#7FFFD4', '#9370DB', '#00FFFF', '#FF00FF'];
     return colors[Math.floor(Math.random() * colors.length)];
   };
   
+  // NEW: Generate random shape for large particles
+  const getRandomShape = () => {
+    const shapes = ['circle', 'square', 'triangle', 'diamond', 'star'];
+    return shapes[Math.floor(Math.random() * shapes.length)];
+  };
+  
+  // NEW: Get particle style based on shape
+  const getLargeParticleStyle = (shape) => {
+    switch (shape) {
+      case 'square':
+        return { borderRadius: 0 };
+      case 'triangle':
+        return { 
+          width: 0, 
+          height: 0, 
+          backgroundColor: 'transparent',
+          borderStyle: 'solid',
+          borderLeftWidth: 10,
+          borderRightWidth: 10,
+          borderBottomWidth: 20,
+          borderLeftColor: 'transparent',
+          borderRightColor: 'transparent',
+        };
+      case 'diamond':
+        return { transform: [{ rotate: '45deg' }] };
+      case 'star':
+        // Simplified star shape
+        return { borderRadius: 2 };
+      default: // circle
+        return { borderRadius: 15 };
+    }
+  };
+  
   return (
-    <View style={styles.container}>
-      {/* Center Message */}
-      {showCenterText && (
-        <Animated.View style={[
-          styles.centerMessageContainer,
-          {
-            opacity: centerTextOpacity,
-            transform: [{ scale: centerTextScale }]
-          }
-        ]}>
-          <Text style={styles.messageText}>
-            {getMessage()}
-          </Text>
-        </Animated.View>
-      )}
-      
-      {/* Reset Animation */}
-      {showResetAnimation && (
-        <View style={styles.resetAnimationContainer}>
-          {/* Main expanding circle */}
-          <Animated.View style={[
-            styles.resetCircle,
-            {
-              opacity: resetCircleOpacity,
-              transform: [{ scale: resetCircleScale }]
-            }
-          ]} />
+    <>
+      {/* Full screen animation overlay - NEW */}
+      {showFullScreenAnimation && (
+        <View style={styles.fullScreenContainer}>
+          {/* Background overlay with scale animation */}
+          <Animated.View 
+            style={[
+              styles.fullScreenOverlay,
+              {
+                opacity: overlayOpacity,
+                transform: [{ scale: overlayScale }]
+              }
+            ]} 
+          />
           
-          {/* Particles */}
-          {particleValues.current.map((particle, index) => (
-            <Animated.View 
-              key={`particle-${index}`}
-              style={[
-                styles.particle,
-                {
-                  backgroundColor: getRandomParticleColor(),
-                  opacity: particle.opacity,
-                  transform: [
-                    { translateX: particle.translateX },
-                    { translateY: particle.translateY },
-                    { rotate: particle.rotate.interpolate({
-                        inputRange: [0, 360],
-                        outputRange: ['0deg', '360deg']
-                      })
-                    }
-                  ]
-                }
-              ]}
-            />
-          ))}
+          {/* Central burst animation */}
+          <Animated.View
+            style={[
+              styles.burstEffect,
+              {
+                opacity: burstOpacity,
+                transform: [{ scale: burstScale }]
+              }
+            ]}
+          />
+          
+          {/* Ripple wave effects */}
+          <Animated.View
+            style={[
+              styles.waveCircle,
+              {
+                opacity: waveAnim1.interpolate({
+                  inputRange: [0, 0.5, 1],
+                  outputRange: [0, 0.6, 0]
+                }),
+                transform: [{ 
+                  scale: waveAnim1.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.1, 4]
+                  }) 
+                }]
+              }
+            ]}
+          />
+          
+          <Animated.View
+            style={[
+              styles.waveCircle,
+              {
+                opacity: waveAnim2.interpolate({
+                  inputRange: [0, 0.5, 1],
+                  outputRange: [0, 0.5, 0]
+                }),
+                transform: [{ 
+                  scale: waveAnim2.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.1, 3]
+                  }) 
+                }]
+              }
+            ]}
+          />
+          
+          <Animated.View
+            style={[
+              styles.waveCircle,
+              {
+                opacity: waveAnim3.interpolate({
+                  inputRange: [0, 0.5, 1],
+                  outputRange: [0, 0.4, 0]
+                }),
+                transform: [{ 
+                  scale: waveAnim3.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.1, 2]
+                  }) 
+                }]
+              }
+            ]}
+          />
+          
+          {/* Large particles */}
+          {largeParticleValues.current.map((particle, index) => {
+            const shape = getRandomShape();
+            return (
+              <Animated.View 
+                key={`large-particle-${index}`}
+                style={[
+                  styles.largeParticle,
+                  getLargeParticleStyle(shape),
+                  {
+                    backgroundColor: getRandomParticleColor(),
+                    opacity: particle.opacity,
+                    transform: [
+                      { translateX: particle.translateX },
+                      { translateY: particle.translateY },
+                      { rotate: particle.rotate.interpolate({
+                          inputRange: [0, 360],
+                          outputRange: ['0deg', '360deg']
+                        })
+                      },
+                      { scale: particle.scale }
+                    ]
+                  }
+                ]}
+              />
+            );
+          })}
         </View>
       )}
-    </View>
+    
+      {/* Original container - repositioned to maintain original functionality */}
+      <View style={styles.container}>
+        {/* Center Message */}
+        {showCenterText && (
+          <Animated.View style={[
+            styles.centerMessageContainer,
+            {
+              opacity: centerTextOpacity,
+              transform: [{ scale: centerTextScale }]
+            }
+          ]}>
+            <Text style={styles.messageText}>
+              {getMessage()}
+            </Text>
+          </Animated.View>
+        )}
+        
+        {/* Reset Animation */}
+        {showResetAnimation && (
+          <View style={styles.resetAnimationContainer}>
+            {/* Main expanding circle */}
+            <Animated.View style={[
+              styles.resetCircle,
+              {
+                opacity: resetCircleOpacity,
+                transform: [{ scale: resetCircleScale }]
+              }
+            ]} />
+            
+            {/* Particles */}
+            {particleValues.current.map((particle, index) => (
+              <Animated.View 
+                key={`particle-${index}`}
+                style={[
+                  styles.particle,
+                  {
+                    backgroundColor: getRandomParticleColor(),
+                    opacity: particle.opacity,
+                    transform: [
+                      { translateX: particle.translateX },
+                      { translateY: particle.translateY },
+                      { rotate: particle.rotate.interpolate({
+                          inputRange: [0, 360],
+                          outputRange: ['0deg', '360deg']
+                        })
+                      }
+                    ]
+                  }
+                ]}
+              />
+            ))}
+          </View>
+        )}
+      </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
+  // Original styles
   container: {
     marginTop: screenHeight * 0.13,
     marginLeft: screenWidth * 0.3,   
@@ -519,6 +889,70 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 5,
     elevation: 5,
+  },
+  
+  // NEW: Full-screen animation styles
+  fullScreenContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000, // High z-index to cover everything
+    pointerEvents: 'none', // Allow touches to pass through
+  },
+  fullScreenOverlay: {
+    position: 'absolute',
+    width: SCREEN_WIDTH * 1.2, // Slightly larger than screen
+    height: SCREEN_HEIGHT * 1.2,
+    backgroundColor: 'rgba(0, 35, 80, 0.5)', // Dark blue tint
+    zIndex: 1001,
+  },
+  burstEffect: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(47, 157, 255, 0.2)',
+    borderWidth: 6,
+    borderColor: '#2F9DFF',
+    shadowColor: '#2F9DFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 10,
+    zIndex: 1002,
+  },
+  waveCircle: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: '#2F9DFF',
+    backgroundColor: 'transparent',
+    shadowColor: '#2F9DFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 1003,
+  },
+  largeParticle: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    backgroundColor: '#2F9DFF',
+    shadowColor: '#FFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    elevation: 8,
+    zIndex: 1004,
   },
 });
 
