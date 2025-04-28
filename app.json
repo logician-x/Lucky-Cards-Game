@@ -3,6 +3,7 @@
     "name": "BettingApp",
     "slug": "BettingApp",
     "version": "1.0.0",
+    "sdkVersion": "50.0.0",
     "orientation": "landscape",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -21,7 +22,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ganesh_7057.BettingApp"
     },
     "web": {
       "bundler": "metro",
@@ -42,6 +44,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "0c1d15de-7347-4e55-8763-1e3748e9a3ef"
+      }
     }
   }
 }
