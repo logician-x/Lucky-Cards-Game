@@ -31,7 +31,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // If sidebar is not open, we should only render the modal if needed
+  if (!isOpen && !howToPlayModalVisible) return null;
 
   const menuItems = [
     {
@@ -51,12 +52,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: '❓',
       label: 'How to Play',
       action: () => {
-        // Set modal visible first, then close sidebar
         setHowToPlayModalVisible(true);
-        // Keep sidebar open until modal is shown
-        setTimeout(() => {
-          onClose();
-        }, 50);
       }
     },
     {
@@ -129,25 +125,27 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
-      <View style={combinedStyles.sidebarContainer}>
-        <TouchableOpacity
-          style={[combinedStyles.sidebarItem, combinedStyles.closeButton]}
-          onPress={onClose}
-        >
-          <Text style={combinedStyles.sidebarIcon}>❌</Text>
-          <Text style={combinedStyles.sidebarLabel}>Menu</Text>
-        </TouchableOpacity>
-        {menuItems.map(item => (
+      {isOpen && (
+        <View style={combinedStyles.sidebarContainer}>
           <TouchableOpacity
-            key={item.id}
-            style={combinedStyles.sidebarItem}
-            onPress={item.action}
+            style={[combinedStyles.sidebarItem, combinedStyles.closeButton]}
+            onPress={onClose}
           >
-            <Text style={combinedStyles.sidebarIcon}>{item.icon}</Text>
-            <Text style={combinedStyles.sidebarLabel}>{item.label}</Text>
+            <Text style={combinedStyles.sidebarIcon}>❌</Text>
+            <Text style={combinedStyles.sidebarLabel}>Menu</Text>
           </TouchableOpacity>
-        ))}
-      </View>
+          {menuItems.map(item => (
+            <TouchableOpacity
+              key={item.id}
+              style={combinedStyles.sidebarItem}
+              onPress={item.action}
+            >
+              <Text style={combinedStyles.sidebarIcon}>{item.icon}</Text>
+              <Text style={combinedStyles.sidebarLabel}>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* How To Play Modal */}
       <Modal
