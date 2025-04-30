@@ -97,6 +97,8 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
   const prevPhaseRef = useRef(null);
   // Flag to track initial component mount
   const initialMountRef = useRef(true);
+  // Timer ref for the "Stop Betting" early notification
+  const stopBettingTimerRef = useRef(null);
   
   // Initialize Audio
   useEffect(() => {
@@ -123,6 +125,11 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
         console.log('Unloading sound');
         sound.unloadAsync();
       }
+      
+      // Clear any existing timer
+      if (stopBettingTimerRef.current) {
+        clearTimeout(stopBettingTimerRef.current);
+      }
     };
   }, []);
   
@@ -146,12 +153,28 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
           if (!initialMountRef.current) { // Don't show twice on first mount
             console.log('Phase changed to betting, showing START_BETTING');
             showMessage(MESSAGE_TYPES.START_BETTING);
+            
+            // Set timer for early "Stop Betting" notification
+            // This will show "Stop Betting" 2 seconds before the end of betting phase
+            const timeUntilStopBetting = (PHASE_TIMES.BETTING_END - PHASE_TIMES.BETTING_START - 1) * 1000;
+            console.log(`Setting timer for Stop Betting notification in ${timeUntilStopBetting}ms`);
+            
+            // Clear any existing timer first
+            if (stopBettingTimerRef.current) {
+              clearTimeout(stopBettingTimerRef.current);
+            }
+            
+            stopBettingTimerRef.current = setTimeout(() => {
+              console.log('Timer fired - showing STOP_BETTING message early');
+              showMessage(MESSAGE_TYPES.STOP_BETTING);
+            }, timeUntilStopBetting);
           }
           break;
         case PHASES.RESULT:
-          // Show STOP_BETTING message when entering result phase
-          console.log('Phase changed to result, showing STOP_BETTING');
-          showMessage(MESSAGE_TYPES.STOP_BETTING);
+          // We don't need to show STOP_BETTING here anymore since we're showing it early
+          // But we'll keep the code commented in case you want to revert
+          // console.log('Phase changed to result, showing STOP_BETTING');
+          // showMessage(MESSAGE_TYPES.STOP_BETTING);
           break;
         case PHASES.RESET:
           // Show NEW_GAME message when entering reset phase
@@ -166,6 +189,24 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
     // Update previous phase reference
     prevPhaseRef.current = phase;
   }, [phase]);
+  
+  // NEW: Separate useEffect that watches gameTime to trigger "Stop Betting" message
+  // This is an alternative approach if you want to use gameTime instead of setTimeout
+  useEffect(() => {
+    if (gameTime && phase === PHASES.BETTING) {
+      // Calculate seconds into the betting phase
+      const secondsIntoBetting = gameTime - PHASE_TIMES.BETTING_START;
+      
+      // Show "Stop Betting" message 2 seconds before the end of betting phase
+      if (secondsIntoBetting >= PHASE_TIMES.BETTING_END - 2 && secondsIntoBetting < PHASE_TIMES.BETTING_END) {
+        // Only show if we haven't already shown it (prevents multiple triggers)
+        if (messageType !== MESSAGE_TYPES.STOP_BETTING && !showCenterText) {
+          console.log('gameTime triggered STOP_BETTING message');
+          showMessage(MESSAGE_TYPES.STOP_BETTING);
+        }
+      }
+    }
+  }, [gameTime, phase]);
   
   // Show message based on message type
   const showMessage = async (type) => {
@@ -474,7 +515,23 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
     // Show reset animation
     setShowResetAnimation(true);
     
-    
+    // Create circle animation
+    resetAnimRef.current = Animated.parallel([
+      // Circle scale animation
+      Animated.timing(resetCircleScale, {
+        toValue: 3,
+        duration: 1200,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      // Circle fade animation
+      Animated.timing(resetCircleOpacity, {
+        toValue: 0,
+        duration: 1200,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]);
     
     // Create staggered particle animations
     const particleAnimations = particleValues.current.map((particle, index) => {
@@ -895,7 +952,7 @@ const styles = StyleSheet.create({
   fullScreenContainer: {
     position: 'absolute',
     top: 0,
-    left: 0,
+    left: 35,
     right: 0,
     bottom: 0,
     width: SCREEN_WIDTH,

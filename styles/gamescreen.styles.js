@@ -80,8 +80,7 @@ export const styles = StyleSheet.create({
   position: 'absolute',
   top: 166,
   left: width > 400 ? 150 : width / 2,
-  paddingVertical: 7
-  ,
+  paddingVertical: 7,
   paddingHorizontal: 0,
   borderRadius: 20,
   borderWidth: 0,

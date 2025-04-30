@@ -10,21 +10,21 @@ const getLayouts = () => [
   // Row 1 (top row)
   { x: width * 0.25, y: height * 0.38 },  // Umbrella
   { x: width * 0.37, y: height * 0.38 },  // Football
-  { x: width * 0.47, y: height * 0.38 },  // Sun
-  { x: width * 0.57, y: height * 0.38 },  // Diya/Lamp
-  { x: width * 0.70, y: height * 0.38 },  // Cow
-  { x: width * 0.83, y: height * 0.38 },  // Bucket
+  { x: width * 0.49, y: height * 0.38 },  // Sun
+  { x: width * 0.61, y: height * 0.38 },  // Diya/Lamp
+  { x: width * 0.73, y: height * 0.38 },  // Cow
+  { x: width * 0.85, y: height * 0.38 },  // Bucket
   // Row 2 (bottom row)
   { x: width * 0.25, y: height * 0.6 },   // Kite
   { x: width * 0.37, y: height * 0.6 },   // Lantern
-  { x: width * 0.47, y: height * 0.6 },   // Rose
-  { x: width * 0.57, y: height * 0.6 },   // Butterfly
-  { x: width * 0.70, y: height * 0.6 },   // Crow
-  { x: width * 0.83, y: height * 0.6 },   // Rabbit
+  { x: width * 0.49, y: height * 0.6 },   // Rose
+  { x: width * 0.61, y: height * 0.6 },   // Butterfly
+  { x: width * 0.73, y: height * 0.6 },   // Crow
+  { x: width * 0.85, y: height * 0.6 },   // Rabbit
 ];
 
 // Source position (left side center)
-const sourcePosition = { x: width * 0.08, y: height * 0.5 };
+const sourcePosition = { x: width * 0.10, y: height * 0.5 };
 
 // Animation config for better performance
 const animationConfig = {
@@ -32,7 +32,7 @@ const animationConfig = {
   isInteraction: false // Reduces interaction tracking overhead
 };
 
-const CoinAnimation = ({ coinImage, sourceImage, gamePhase }) => {
+const CoinAnimation = ({ coinImage, sourceImage, gamePhase, bettingPhaseDuration = 220000 }) => {
   // Memoize layouts to prevent recalculations
   const layouts = useMemo(() => getLayouts(), []);
   
@@ -59,13 +59,24 @@ const CoinAnimation = ({ coinImage, sourceImage, gamePhase }) => {
   
   // Ref for audio
   const soundRef = useRef(null);
+
+  // Track when betting phase started
+  const bettingPhaseStartTimeRef = useRef(null);
+  
+  // Track if we're in early-stop mode (2 seconds before betting phase ends)
+  const [earlyStop, setEarlyStop] = useState(false);
   
   // Update random amount every 2 seconds
   useEffect(() => {
+    let currentAmount = Math.floor(Math.random() * 4501) + 500; // initial random number
+    setRandomAmount(currentAmount);
+  
     const amountInterval = setInterval(() => {
-      setRandomAmount(Math.floor(Math.random() * 4501) + 500);
-    }, 2000);
-    
+      const delta = Math.floor(Math.random() * 11) - 5; // random change between -5 and +5
+      currentAmount = Math.max(500, Math.min(5000, currentAmount + delta)); // keep within 500-5000
+      setRandomAmount(currentAmount);
+    }, 1000);
+  
     return () => clearInterval(amountInterval);
   }, []);
   
@@ -104,8 +115,8 @@ const CoinAnimation = ({ coinImage, sourceImage, gamePhase }) => {
   const lastSoundPlayedAt = useRef(0);
   const playCoinSound = async () => {
     try {
-      // Only play sound during betting phase
-      if (gamePhase !== 'betting') return;
+      // Only play sound during betting phase and not in early stop mode
+      if (gamePhase !== 'betting' || earlyStop) return;
       
       // Debounce sound playing to avoid audio stuttering
       const now = Date.now();
@@ -132,8 +143,8 @@ const CoinAnimation = ({ coinImage, sourceImage, gamePhase }) => {
   
   // Create a new coin animation with optimized settings
   const createCoin = () => {
-    // Only create coins during betting phase
-    if (gamePhase !== 'betting') return;
+    // Only create coins during betting phase and not in early stop mode
+    if (gamePhase !== 'betting' || earlyStop) return;
     
     // Throttle coin creation
     const now = Date.now();
@@ -229,19 +240,71 @@ const CoinAnimation = ({ coinImage, sourceImage, gamePhase }) => {
     });
   };
   
+  // Function to clear all animations and placed coins
+  const clearAllCoins = () => {
+    // Stop all active animations
+    coinAnimations.current.forEach(coin => {
+      coin.posX.stopAnimation();
+      coin.posY.stopAnimation();
+      coin.scale.stopAnimation();
+    });
+    
+    // Clear all active animations
+    coinAnimations.current = [];
+    
+    // Clear all placed coins
+    setPlacedCoins(Array(layouts.length).fill().map(() => []));
+  };
+  
   // Handle phase changes efficiently
   useEffect(() => {
-    // If game phase changes to "reset", clear all placed coins
+    // If game phase changes to "reset", clear all placed coins and reset stop flag
     if (gamePhase === 'reset') {
-      setPlacedCoins(Array(layouts.length).fill().map(() => []));
+      clearAllCoins();
+      setEarlyStop(false);
+      bettingPhaseStartTimeRef.current = null;
     }
-  }, [gamePhase, layouts.length]);
+    
+    // When entering betting phase, record the start time and reset stop flag
+    if (gamePhase === 'betting') {
+      bettingPhaseStartTimeRef.current = Date.now();
+      setEarlyStop(false);
+    } else {
+      // When leaving betting phase, clear the start time
+      bettingPhaseStartTimeRef.current = null;
+    }
+    
+    // When transitioning from betting to another phase, ensure animations are cleared
+    if (gamePhase !== 'betting') {
+      clearAllCoins();
+    }
+  }, [gamePhase]);
   
-  // Start creating coins at regular intervals during betting phase
+  // Monitor betting phase timing to implement early stop
+  useEffect(() => {
+    let timer;
+    
+    if (gamePhase === 'betting' && bettingPhaseStartTimeRef.current) {
+      // Calculate when to stop (2 seconds before end of betting phase)
+      const earlyStopTime = bettingPhaseDuration - 2000;
+      
+      // Set timer to clear animations 2 seconds before betting phase ends
+      timer = setTimeout(() => {
+        setEarlyStop(true);
+        clearAllCoins();
+      }, earlyStopTime);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [gamePhase, bettingPhaseDuration]);
+  
+  // Start creating coins at regular intervals during betting phase (only if not in early stop mode)
   useEffect(() => {
     let interval;
     
-    if (gamePhase === 'betting') {
+    if (gamePhase === 'betting' && !earlyStop) {
       // Create initial batch of coins in staggered manner for smoothness
       for (let i = 0; i < 8; i++) {
         setTimeout(() => createCoin(), i * 100);
@@ -256,12 +319,12 @@ const CoinAnimation = ({ coinImage, sourceImage, gamePhase }) => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [gamePhase]);
+  }, [gamePhase, earlyStop]);
   
   // Memoize placed coin images to prevent unnecessary rerenders
   const placedCoinImages = useMemo(() => {
-    // Only show coins during betting and result phases
-    if (gamePhase !== 'betting' && gamePhase !== 'result') return null;
+    // Only show coins during betting phase and not in early stop mode
+    if (gamePhase !== 'betting' || earlyStop) return null;
     
     // Flatten the placedCoins array for rendering
     return placedCoins.flatMap((targetCoins, index) => 
@@ -279,7 +342,25 @@ const CoinAnimation = ({ coinImage, sourceImage, gamePhase }) => {
         />
       ))
     );
-  }, [placedCoins, gamePhase, defaultCoinImage]);
+  }, [placedCoins, gamePhase, defaultCoinImage, earlyStop]);
+  
+  // Only render animations if in betting phase and not in earlyStop mode
+  const animatedCoins = (gamePhase === 'betting' && !earlyStop) ? coinAnimations.current.map((coin) => (
+    <Animated.Image
+      key={coin.id}
+      source={defaultCoinImage}
+      style={{
+        position: 'absolute',
+        width: 20,
+        height: 20,
+        transform: [
+          { translateX: coin.posX },
+          { translateY: coin.posY },
+          { scale: coin.scale }
+        ],
+      }}
+    />
+  )) : null;
   
   return (
     <View style={{ position: 'absolute', width, height, pointerEvents: 'none' }}>
@@ -309,22 +390,7 @@ const CoinAnimation = ({ coinImage, sourceImage, gamePhase }) => {
       </View>
       
       {/* Render all active coin animations */}
-      {coinAnimations.current.map((coin) => (
-        <Animated.Image
-          key={coin.id}
-          source={defaultCoinImage}
-          style={{
-            position: 'absolute',
-            width: 20,
-            height: 20,
-            transform: [
-              { translateX: coin.posX },
-              { translateY: coin.posY },
-              { scale: coin.scale }
-            ],
-          }}
-        />
-      ))}
+      {animatedCoins}
       
       {/* Render all placed coins that have reached their destination */}
       {placedCoinImages}
