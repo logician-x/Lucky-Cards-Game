@@ -13,12 +13,12 @@ import PreviousWinner from '../../components/PreviousWinner';
 import ChipSelection from '../../components/ChipSelection';
 import TimerDisplay from '../../components/TimerDisplay';
 import NotificationBanner from '../../components/NotificationBanner';
-import CoinAnimation from '../../components/CoinAnimation'; // Import the new component
+import CoinAnimation from '../../components/CoinAnimation';
 
 // Constants, hooks, and styles
 import { PHASES, itemNames } from '../../constants/gameConstants';
 import { itemImages, walletIcon, ladyPresenter, backgroundImage, coinImage, coinBagImage } from '../../constants/imageAssets';
-import useGameTimer from '../../hooks/useGameTimer';
+import useServerGameTimer from '../../hooks/useGameTimer'; // Import the new server-synchronized timer hook
 import { styles } from '../../styles/gamescreen.styles';
 import { renderCoinAnimations } from '../../animations/gameAnimations';
 
@@ -124,8 +124,9 @@ const GameScreen = () => {
     });
   };
 
-  // Initialize game timer hook
-  const { gamePhase, phaseTimer, timerColor } = useGameTimer(
+  // Initialize server-synchronized game timer hook
+  // This replaces the previous useGameTimer with server-synchronized version
+  const { gamePhase, phaseTimer, timerColor } = useServerGameTimer(
     handlePhaseChange,
     determineWinnerHandler
   );
@@ -270,7 +271,7 @@ const GameScreen = () => {
             </TouchableOpacity>
             
             {/* Phase Banner */}
-            <PhaseBanner phase={gamePhase} />
+            <PhaseBanner phase={gamePhase}/>
           </View>
           
           {/* Presenter Image */}
@@ -365,10 +366,9 @@ const GameScreen = () => {
         
         {/* Add the CoinAnimation component here */}
         <CoinAnimation 
-          coinImage={coinImage} // You'll need to add this to your imageAssets
-          sourceImage={coinBagImage} // You'll need to add this to your imageAssets
-          gamePhase={gamePhase
-          } 
+          coinImage={coinImage}
+          sourceImage={coinBagImage}
+          gamePhase={gamePhase} 
         />
       </ImageBackground>
     </View>

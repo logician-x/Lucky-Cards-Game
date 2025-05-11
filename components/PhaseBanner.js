@@ -155,7 +155,7 @@ const PhaseBanner = ({ gameTime, phase, onGameComplete }) => {
             
             // Set timer for early "Stop Betting" notification
             // This will show "Stop Betting" 2 seconds before the end of betting phase
-            const timeUntilStopBetting = (PHASE_TIMES.BETTING_END - PHASE_TIMES.BETTING_START - 1) * 1000;
+            const timeUntilStopBetting = (PHASE_TIMES.BETTING_END - PHASE_TIMES.BETTING_START - 2) * 1000;
             console.log(`Setting timer for Stop Betting notification in ${timeUntilStopBetting}ms`);
             
             // Clear any existing timer first

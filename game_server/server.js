@@ -1,82 +1,140 @@
 const express = require('express');
 const http = require('http');
-const socketIO = require('socket.io');
+const { Server } = require('socket.io');
 const cors = require('cors');
 
 const app = express();
 app.use(cors());
 const server = http.createServer(app);
-const io = socketIO(server, { cors: { origin: '*' } });
 
-let timer = 30;
-let phase = 'BETTING';
-let interval = null;
-let currentBets = {}; // { userId: [{ option: 2, amount: 100 }, ...] }
+// Configure Socket.io with appropriate CORS settings for React Native
+const io = new Server(server, {
+  cors: {
+    origin: '*', // In production, specify your client URLs
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
+  },
+  transports: ['websocket', 'polling'] // Explicitly supporting both for React Native
+});
 
-const itemNames = [
-  'Umbrella', 'Football', 'Sun', 'Diya', 'Cow', 'Bucket',
-  'Kite', 'Top', 'Rose', 'Butterfly', 'Crow', 'Rabbit'
-];
+// Game phase constants - should match your client constants
+const PHASES = {
+  BETTING: 'betting',  // 0-22s
+  RESULT: 'result',    // 22-27s
+  RESET: 'reset'       // 27-30s
+};
 
-function startGameLoop() {
-  timer = 30;
-  phase = 'BETTING';
-  currentBets = {};
-  io.emit('gameState', { timer, phase });
+// Game state
+let gameState = {
+  timer: 30,
+  phaseTimer: 22,
+  phase: PHASES.BETTING,
+  interval: null
+};
 
-  interval = setInterval(() => {
-    timer--;
+// Start the game timer
+function startGameTimer() {
+  // Clear any existing interval
+  if (gameState.interval) {
+    clearInterval(gameState.interval);
+  }
 
-    // Phase transitions
-    if (timer === 8 && phase !== 'result') {
-      phase = 'RESULT';
-      io.emit('gameState', { timer, phase });
-      determineWinner();
-    } else if (timer === 3 && phase !== 'reset') {
-      phase = 'RESET';
-      io.emit('gameState', { timer, phase });
-    } else if (timer === 0) {
-      startGameLoop(); // restart
+  // Reset timer
+  gameState.timer = 30;
+  gameState.phaseTimer = 22;
+  gameState.phase = PHASES.BETTING;
+
+  // Broadcast initial state
+  broadcastGameState();
+
+  // Start timer interval
+  gameState.interval = setInterval(() => {
+    // Decrement timer
+    gameState.timer--;
+
+    // Update phase and phase-specific timer
+    if (gameState.timer > 8) {
+      gameState.phase = PHASES.BETTING;
+      gameState.phaseTimer = gameState.timer - 8;
+    } else if (gameState.timer > 3) {
+      gameState.phase = PHASES.RESULT;
+      gameState.phaseTimer = gameState.timer - 3;
     } else {
-      io.emit('timerUpdate', timer);
+      gameState.phase = PHASES.RESET;
+      gameState.phaseTimer = gameState.timer;
+    }
+
+    // Broadcast updated state
+    broadcastGameState();
+
+    // Reset timer when it reaches 0
+    if (gameState.timer <= 0) {
+      gameState.timer = 30;
+      gameState.phaseTimer = 22;
+      gameState.phase = PHASES.BETTING;
+      broadcastGameState();
     }
   }, 1000);
 }
 
-function determineWinner() {
-  const winnerIndex = Math.floor(Math.random() * 12);
-  const winnerName = itemNames[winnerIndex];
-  
-  // Simulate calculating winnings
-  const winners = [];
-  for (const userId in currentBets) {
-    const bets = currentBets[userId];
-    const wonBets = bets.filter(b => b.option === winnerIndex);
-    const totalWin = wonBets.reduce((sum, b) => sum + b.amount * 10, 0); // 10x multiplier
-    if (totalWin > 0) {
-      winners.push({ userId, totalWin });
-    }
-  }
-
-  io.emit('winnerAnnouncement', { winnerIndex, winnerName, winners });
+// Broadcast game state to all connected clients
+function broadcastGameState() {
+  io.emit('timerUpdate', {
+    timer: gameState.timer,
+    phaseTimer: gameState.phaseTimer,
+    phase: gameState.phase
+  });
 }
 
+// Track connected clients
+let connectedClients = 0;
+
+// Socket.io event handlers
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.emit('gameState', { timer, phase });
-
-  socket.on('placeBet', ({ userId, option, amount }) => {
-    if (!currentBets[userId]) currentBets[userId] = [];
-    currentBets[userId].push({ option, amount });
+  connectedClients++;
+  console.log(`Client connected: ${socket.id}. Total clients: ${connectedClients}`);
+  
+  // Send current game state to newly connected user
+  socket.emit('timerUpdate', {
+    timer: gameState.timer,
+    phaseTimer: gameState.phaseTimer,
+    phase: gameState.phase
   });
 
+  // Handle client disconnection
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    connectedClients--;
+    console.log(`Client disconnected: ${socket.id}. Total clients: ${connectedClients}`);
   });
 });
 
-startGameLoop();
-server.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+// Start the server
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`Game server running on port ${PORT}`);
+  
+  // Start the game timer when server starts
+  startGameTimer();
+});
+
+// Add a health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    clients: connectedClients,
+    gamePhase: gameState.phase,
+    timer: gameState.timer
+  });
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('Shutting down game server...');
+  if (gameState.interval) {
+    clearInterval(gameState.interval);
+  }
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
