@@ -80,7 +80,7 @@ export const login: React.FC = () => {
     const fullPhoneNumber = '+91' + phoneNumber;
 
     if (phoneNumber.length !== 10 || !/^[6-9]\d{9}$/.test(phoneNumber)) {
-      Alert.alert('Invalid Number', 'Please enter a valid 10-digit Indian phone number.');
+      Alert.alert('Not a valid Number', 'Please enter a valid 10-digit Indian phone number.');
       return;
     }
 
@@ -93,7 +93,7 @@ export const login: React.FC = () => {
       // Show alert that OTP has been sent
       Alert.alert(
         'OTP Sent',
-        `that  verification code has been sent to +91 ${phoneNumber}`,
+        `a  verification code has been sent to +91 ${phoneNumber}`,
         [{ text: 'OK' }]
       );
     } catch (error: any) {
