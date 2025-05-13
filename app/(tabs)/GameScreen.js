@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { 
   ImageBackground, View, Animated, 
-  Text, Image, TouchableOpacity, StatusBar, Alert 
+  Text, Image, TouchableOpacity, StatusBar, Alert,
+  InteractionManager, Platform 
 } from 'react-native';
 
 // Components
@@ -18,7 +18,7 @@ import CoinAnimation from '../../components/CoinAnimation';
 // Constants, hooks, and styles
 import { PHASES, itemNames } from '../../constants/gameConstants';
 import { itemImages, walletIcon, ladyPresenter, backgroundImage, coinImage, coinBagImage } from '../../constants/imageAssets';
-import useServerGameTimer from '../../hooks/useGameTimer'; // Import the new server-synchronized timer hook
+import useServerGameTimer from '../../hooks/useGameTimer';
 import { styles } from '../../styles/gamescreen.styles';
 import { renderCoinAnimations } from '../../animations/gameAnimations';
 
@@ -33,6 +33,9 @@ import {
   animateCoinPlacement 
 } from '../../animations/gameAnimations';
 
+// Memoized Game Item for better performance
+const MemoizedGameItem = memo(GameItem);
+
 const GameScreen = () => {
   // State
   const [walletBalance, setWalletBalance] = useState(1000);
@@ -41,21 +44,24 @@ const GameScreen = () => {
   const [winnerIndex, setWinnerIndex] = useState(null);
   const [prevWinnerIndex, setPrevWinnerIndex] = useState(null);
   const [isWinner, setIsWinner] = useState(false);
-  const [playerID, setPlayerID] = useState('player1'); // Simulating current player ID
-  const [allBets, setAllBets] = useState({}); // Format: {optionIndex: {playerID: betAmount}}
+  const [playerID, setPlayerID] = useState('player1');
+  const [allBets, setAllBets] = useState({});
   const [totalBetAmount, setTotalBetAmount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [winnersCount, setWinnersCount] = useState(0);
-  const [previousWinners, setPreviousWinners] = useState([]); // Store history of winners
+  const [previousWinners, setPreviousWinners] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(null);
-  const hasHandledResultRef = useRef(false);
   const [showResultText, setShowResultText] = useState(false);
-
-  // Animation refs
+  const [isAddingCoins, setIsAddingCoins] = useState(false);
+  const [betLocked, setBetLocked] = useState(false);
+  
+  // Refs
   const walletRef = useRef();
+  const hasHandledResultRef = useRef(false);
+  const previousPhaseRef = useRef(null);
   const animations = setupAnimations();
   const { scaleAnim, winnerScale, confettiOpacity, resetFade } = animations;
-
+  
   // Initialize all bets structure
   useEffect(() => {
     const initialAllBets = {};
@@ -71,76 +77,119 @@ const GameScreen = () => {
     return () => animation.stop();
   }, []);
 
-  // Game timer and phase management
-  const handlePhaseChange = (phase) => {
+  // Handle phase change effects
+  const handlePhaseChange = useCallback((phase) => {
     console.log('Phase changed to:', phase);
     
     if (phase === PHASES.BETTING) {
-      hasHandledResultRef.current = false; // Reset for new round
-      resetBets();
-    } else if (phase === PHASES.RESET) {
+      // Reset state for new betting round
+      hasHandledResultRef.current = false;
+      setShowResultText(false);
+      setIsWinner(null);
+      setBetLocked(false);
+      
+      // Delay resetting bets to ensure animations complete
+      if (previousPhaseRef.current === PHASES.RESET) {
+        InteractionManager.runAfterInteractions(() => {
+          resetBets();
+        });
+      }
+    } 
+    else if (phase === PHASES.RESULT) {
+      // Lock betting immediately when result phase starts
+      setBetLocked(true);
+    }
+    else if (phase === PHASES.RESET) {
+      // Run reset animation
       animateReset(resetFade);
     }
-  };
+    
+    previousPhaseRef.current = phase;
+  }, [resetFade]);
   
-  // Handle phase change effects
-  useEffect(() => {
-    if (gamePhase === PHASES.BETTING) {
-      setShowResultText(false); // Hide message for new round
-      setIsWinner(null);        // Reset winner status
-    }
-  }, [gamePhase]);
-
-  // In your determineWinnerHandler function:
-  const determineWinnerHandler = () => {
-    if (hasHandledResultRef.current) return; // Already called
-    hasHandledResultRef.current = true;     // Mark as called
-
+  // Determine winner with improved error handling
+  const determineWinnerHandler = useCallback(() => {
+    // Prevent multiple calls in the same phase
+    if (hasHandledResultRef.current) return;
+    hasHandledResultRef.current = true;
+    
     console.log('🎯 Winner logic triggered');
-
-    const randIndex = Math.floor(Math.random() * 12);
-
-    animateHighlightAcrossOptions(setHighlightedIndex, randIndex, () => {
+    
+    try {
+      // Generate winner with requestAnimationFrame to ensure UI responsiveness
+      requestAnimationFrame(() => {
+        const randIndex = Math.floor(Math.random() * 12);
+        
+        // Run highlight animation
+        animateHighlightAcrossOptions(setHighlightedIndex, randIndex, () => {
+          setWinnerIndex(randIndex);
+          animateWinner(winnerScale, confettiOpacity);
+          
+          const userPlacedAnyBets = bets.some(bet => bet > 0);
+          
+          if (bets[randIndex] > 0) {
+            const winnings = bets[randIndex] * 10;
+            
+            // Update wallet with animation
+            setWalletBalance(prev => prev + winnings);
+            animateCoinsToWallet();
+            setIsWinner(true);
+          } else {
+            setIsWinner(userPlacedAnyBets ? false : null);
+          }
+          
+          setWinnersCount(Math.floor(Math.random() * 100) + 1);
+          
+          // Show result text after animations complete
+          setTimeout(() => {
+            setShowResultText(true);
+          }, 2000);
+        });
+      });
+    } catch (error) {
+      console.error('Error in determineWinner:', error);
+      // Fallback in case of error
+      const randIndex = Math.floor(Math.random() * 12);
       setWinnerIndex(randIndex);
-      animateWinner(winnerScale, confettiOpacity);
-    
-      const userPlacedAnyBets = bets.some(bet => bet > 0);
-    
-      if (bets[randIndex] > 0) {
-        const winnings = bets[randIndex] * 10;
-        setWalletBalance(prev => prev + winnings);
-        setIsWinner(true);
-        animateCoinsToWallet();
-      } else {
-        setIsWinner(userPlacedAnyBets ? false : null);
-      }
-    
-      setWinnersCount(Math.floor(Math.random() * 100) + 1);
-    
-      // Wait until everything is settled
-      setTimeout(() => {
-        setShowResultText(true);
-      }, 2000); // Adjust based on how long your animations last
-    });
-  };
+      setShowResultText(true);
+    }
+  }, [bets, winnerScale, confettiOpacity]);
 
   // Initialize server-synchronized game timer hook
-  // This replaces the previous useGameTimer with server-synchronized version
-  const { gamePhase, phaseTimer, timerColor } = useServerGameTimer(
+  const { gamePhase, phaseTimer, timerColor, isServerConnected } = useServerGameTimer(
     handlePhaseChange,
     determineWinnerHandler
   );
 
-  const handleAddPress = () => {
-    // Open a modal, show options, or directly add money
-    console.log('Add button pressed');
-  };
+  // Add funds to wallet
+  const handleAddPress = useCallback(() => {
+    // Prevent multiple rapid presses
+    if (isAddingCoins) return;
+    
+    setIsAddingCoins(true);
+    
+    // Add coins with animation
+    const addAmount = 500;
+    setWalletBalance(prev => prev + addAmount);
+    
+    // Show notification
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      // Use native haptic feedback if available
+      if (Platform.OS === 'ios' && Haptics) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    }
+    
+    // Reset flag after animation completes
+    setTimeout(() => {
+      setIsAddingCoins(false);
+    }, 1000);
+  }, [isAddingCoins]);
   
-  // Reset bets function - separate from the round start logic
-  const resetBets = () => {
+  // Reset bets function with improved state updates
+  const resetBets = useCallback(() => {
     // If there was a winner, save it to previous winners
     if (winnerIndex !== null) {
-      // Save to previous winners history (most recent first)
       setPreviousWinners(prevWinners => {
         const newWinners = [
           {
@@ -153,67 +202,106 @@ const GameScreen = () => {
         return newWinners;
       });
       
-      // Update the most recent winner for display
       setPrevWinnerIndex(winnerIndex);
     }
     
+    // Reset all bet-related states
     setBets(Array(12).fill(0));
     setTotalBetAmount(0);
     setWinnerIndex(null);
     
-    // Reset all bets for new round
-    const initialAllBets = {};
-    for (let i = 0; i < 12; i++) {
-      initialAllBets[i] = {};
-    }
-    setAllBets(initialAllBets);
-  };
+    // Reset all bets for new round using a function to ensure fresh state
+    setAllBets(() => {
+      const initialAllBets = {};
+      for (let i = 0; i < 12; i++) {
+        initialAllBets[i] = {};
+      }
+      return initialAllBets;
+    });
+  }, [winnerIndex, winnersCount]);
 
-  // Place a bet on an option
-  const placeBet = (index) => {
-    if (gamePhase !== PHASES.BETTING) {
+  // Place bet with validation and improved UX
+  const placeBet = useCallback((index) => {
+    // Validate phase and prevent locked betting
+    if (gamePhase !== PHASES.BETTING || betLocked) {
       Alert.alert("Betting Closed", "Betting is only allowed during the betting phase.");
       return;
     }
     
+    // Validate wallet balance
     if (walletBalance < selectedChip) {
       Alert.alert("Insufficient Balance", "You don't have enough coins to place this bet.");
       return;
     }
     
-    // Update current player's bets
-    const newBets = [...bets];
-    newBets[index] += selectedChip;
-    setBets(newBets);
+    // Check maximum bet limit (optional)
+    const currentBet = bets[index] || 0;
+    const maxBetPerOption = 500; // Example maximum bet per option
     
-    // Update total bet amount
+    if (currentBet + selectedChip > maxBetPerOption) {
+      Alert.alert("Bet Limit Reached", `Maximum bet per option is ${maxBetPerOption} coins.`);
+      return;
+    }
+    
+    // Update state in a batch to prevent race conditions
+    setBets(prevBets => {
+      const newBets = [...prevBets];
+      newBets[index] += selectedChip;
+      return newBets;
+    });
+    
+    // Update total and wallet
     setTotalBetAmount(prev => prev + selectedChip);
+    setWalletBalance(prev => prev - selectedChip);
     
     // Update all bets structure
-    const newAllBets = { ...allBets };
-    if (!newAllBets[index]) {
-      newAllBets[index] = {};
-    }
-    if (!newAllBets[index][playerID]) {
-      newAllBets[index][playerID] = 0;
-    }
-    newAllBets[index][playerID] += selectedChip;
-    setAllBets(newAllBets);
-    
-    // Deduct from wallet balance
-    setWalletBalance(prev => prev - selectedChip);
+    setAllBets(prev => {
+      const newAllBets = { ...prev };
+      if (!newAllBets[index]) {
+        newAllBets[index] = {};
+      }
+      newAllBets[index][playerID] = (newAllBets[index][playerID] || 0) + selectedChip;
+      return newAllBets;
+    });
     
     // Animate coin placement
     animateCoinPlacement(index);
-  };
+  }, [gamePhase, walletBalance, selectedChip, bets, playerID, betLocked]);
 
-  // Clear all bets
-  const clearAllBets = () => {
-    if (gamePhase !== PHASES.BETTING) {
+  // Clear all bets with confirmation
+  const clearAllBets = useCallback(() => {
+    // Validate phase
+    if (gamePhase !== PHASES.BETTING || betLocked) {
       Alert.alert("Betting Closed", "You can only clear bets during the betting phase.");
       return;
     }
     
+    // Check if there are bets to clear
+    if (totalBetAmount <= 0) {
+      return; // Nothing to clear
+    }
+    
+    // Add confirmation for larger bets
+    if (totalBetAmount > 100) {
+      Alert.alert(
+        "Clear All Bets?",
+        `Are you sure you want to clear all your bets (${totalBetAmount} coins)?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Clear", 
+            style: "destructive",
+            onPress: performClearBets
+          }
+        ]
+      );
+    } else {
+      performClearBets();
+    }
+  }, [gamePhase, totalBetAmount, betLocked]);
+  
+  // Helper function to perform the actual bet clearing
+  const performClearBets = useCallback(() => {
     // Refund bet amount to balance
     setWalletBalance(prev => prev + totalBetAmount);
     
@@ -222,19 +310,43 @@ const GameScreen = () => {
     setTotalBetAmount(0);
     
     // Reset player's bets in allBets structure
-    const newAllBets = { ...allBets };
-    for (let i = 0; i < 12; i++) {
-      if (newAllBets[i] && newAllBets[i][playerID]) {
-        delete newAllBets[i][playerID];
+    setAllBets(prev => {
+      const newAllBets = { ...prev };
+      for (let i = 0; i < 12; i++) {
+        if (newAllBets[i] && newAllBets[i][playerID]) {
+          delete newAllBets[i][playerID];
+        }
       }
-    }
-    setAllBets(newAllBets);
-  };
+      return newAllBets;
+    });
+  }, [totalBetAmount, playerID]);
 
   // Toggle sidebar menu
-  const toggleMenu = () => {
+  const toggleMenu = useCallback(() => {
     setIsMenuOpen(prev => !prev);
-  };
+  }, []);
+
+  // Render game items in grid
+  const renderGameItems = useCallback((startIndex, endIndex) => {
+    const items = [];
+    for (let index = startIndex; index <= endIndex; index++) {
+      items.push(
+        <MemoizedGameItem
+          key={index}
+          index={index}
+          image={itemImages[index]}
+          winnerIndex={winnerIndex}
+          highlightedIndex={highlightedIndex}
+          gamePhase={gamePhase}
+          confettiOpacity={confettiOpacity}
+          allBets={allBets}
+          playerID={playerID}
+          onPress={placeBet}
+        />
+      );
+    }
+    return items;
+  }, [winnerIndex, highlightedIndex, gamePhase, confettiOpacity, allBets, playerID, placeBet]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -258,13 +370,18 @@ const GameScreen = () => {
               phaseTimer={phaseTimer} 
               scaleAnim={scaleAnim} 
               timerColor={timerColor()} 
+              isServerConnected={isServerConnected}
             />
              
-            <TouchableOpacity style={styles.addButton} onPress={handleAddPress}>
+            <TouchableOpacity 
+              style={[styles.addButton, isAddingCoins && styles.addButtonActive]} 
+              onPress={handleAddPress}
+              disabled={isAddingCoins}
+            >
               <View style={styles.addButtonContent}>
                 <Text style={styles.addButtonText}>ADD</Text>
                 <Image
-                  source={require('../../assets/images/coin1.png')} // Replace with your coin image path
+                  source={require('../../assets/images/coin1.png')}
                   style={styles.coinIcon}
                 />
               </View>
@@ -283,7 +400,7 @@ const GameScreen = () => {
             />
           </View>
           
-          {/* Previous Winner Display - Positioned at right side */}
+          {/* Previous Winner Display */}
           <View style={styles.previousWinnerContainerRight}>
             <PreviousWinner
               prevWinnerIndex={prevWinnerIndex}
@@ -292,43 +409,17 @@ const GameScreen = () => {
             />
           </View>
           
-          {/* Items Grid */}
+          {/* Items Grid - Optimized rendering */}
           <View style={styles.gridContainer}>
             <View style={styles.gridRow}>
-              {[0, 1, 2, 3, 4, 5].map(index => (
-                <GameItem
-                  key={index}
-                  index={index}
-                  image={itemImages[index]}
-                  winnerIndex={winnerIndex}
-                  highlightedIndex={highlightedIndex}
-                  gamePhase={gamePhase}
-                  confettiOpacity={confettiOpacity}
-                  allBets={allBets}
-                  playerID={playerID}
-                  onPress={placeBet}
-                />
-              ))}
+              {renderGameItems(0, 5)}
             </View>
             <View style={styles.gridRow}>
-              {[6, 7, 8, 9, 10, 11].map(index => (
-                <GameItem
-                  key={index}
-                  index={index}
-                  image={itemImages[index]}
-                  winnerIndex={winnerIndex}
-                  highlightedIndex={highlightedIndex}
-                  gamePhase={gamePhase}
-                  confettiOpacity={confettiOpacity}
-                  allBets={allBets}
-                  playerID={playerID}
-                  onPress={placeBet}
-                />
-              ))}
+              {renderGameItems(6, 11)}
             </View>
           </View>
          
-          {/* Winner Announcement */}       
+          {/* Winner Announcement with conditional rendering */}       
           {gamePhase === PHASES.RESULT && showResultText && winnerIndex !== null && (
             <View style={styles.resultContainer}>
               {isWinner === true ? (
@@ -351,7 +442,7 @@ const GameScreen = () => {
               walletBalance={walletBalance}
               totalBetAmount={totalBetAmount}
               onClearBets={clearAllBets}
-              isDisabled={gamePhase !== PHASES.BETTING}
+              isDisabled={gamePhase !== PHASES.BETTING || betLocked}
             />
             {/* Wallet */}
             <View ref={walletRef} style={styles.walletContainer}>
@@ -364,7 +455,7 @@ const GameScreen = () => {
         {renderCoinAnimations()}
         <NotificationBanner />
         
-        {/* Add the CoinAnimation component here */}
+        {/* Coin Animation */}
         <CoinAnimation 
           coinImage={coinImage}
           sourceImage={coinBagImage}

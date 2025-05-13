@@ -1,7 +1,7 @@
 // Server connection configuration
 export const SERVER_CONFIG = {
   // Base URL for your local game server
-  BASE_URL: 'http://192.168.176.234:3001',
+  BASE_URL: 'http://192.168.34.145:3001',
   
   // Shorter timeout for local connections (milliseconds)
   CONNECTION_TIMEOUT: 3000,

@@ -11,56 +11,84 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
   // Refs for tracking real values
   const mainTimerRef = useRef(GAME_CONFIG.ROUND_DURATION);
   const gamePhaseRef = useRef(PHASES.BETTING);
-  const lastPhaseChangeRef = useRef(null);
+  const lastServerUpdateRef = useRef(Date.now());
+  const serverSyncedRef = useRef(false);
   
   // Animation and network refs
   const socketRef = useRef(null);
   const animationRef = useRef(null);
   const localTimerActiveRef = useRef(false);
   const lastUpdateTimeRef = useRef(performance.now());
+  const connectionAttemptRef = useRef(0);
+  const maxConnectionAttempts = 3;
+  
+  // Deduplicate phase change triggers
+  const lastPhaseChangeTimeRef = useRef({});
+  const phaseChangeCooldown = 500; // ms
   
   // Calculate proper phase timer based on main timer and current phase
   const calculatePhaseTimer = useCallback(() => {
     const mainTimer = mainTimerRef.current;
     
-    // Timer calculations based on total round time of 30 seconds
-    // BETTING: 22 seconds (30 to 8)
-    // RESULT: 5 seconds (8 to 3)
-    // RESET: 3 seconds (3 to 0)
-    
     if (gamePhaseRef.current === PHASES.BETTING) {
-      // For BETTING phase: count down from 22 to 1
-      // When main timer is 30, we want to show 22
-      // When main timer is 9, we want to show 1
       if (mainTimer >= 9 && mainTimer <= 30) {
         return Math.max(1, Math.ceil(mainTimer - 8) - 1);
       } else {
-        return 22; // Default for safety
+        return 22;
       }
     } 
     else if (gamePhaseRef.current === PHASES.RESULT) {
-      // For RESULT phase: count down from 5 to 1
-      // When main timer is 8, we want to show 5
-      // When main timer is 4, we want to show 1
       if (mainTimer >= 4 && mainTimer <= 8) {
         return Math.max(1, Math.ceil(mainTimer - 3));
       } else {
-        return 5; // Default for safety
+        return 5;
       }
     }
     else if (gamePhaseRef.current === PHASES.RESET) {
-      // For RESET phase: count down from 3 to 1
-      // When main timer is 3, we want to show 3
-      // When main timer is 1, we want to show 1
       if (mainTimer >= 1 && mainTimer <= 3) {
         return Math.max(1, Math.ceil(mainTimer));
       } else {
-        return 3; // Default for safety
+        return 3;
       }
     }
     
     return 1; // Fallback
   }, []);
+  
+  // Safe phase change handler with debouncing
+  const safeHandlePhaseChange = useCallback((newPhase) => {
+    const now = Date.now();
+    const lastChange = lastPhaseChangeTimeRef.current[newPhase] || 0;
+    
+    // Prevent duplicate phase change triggers
+    if (now - lastChange < phaseChangeCooldown) {
+      console.log(`Skipping duplicate phase change to ${newPhase}`);
+      return;
+    }
+    
+    lastPhaseChangeTimeRef.current[newPhase] = now;
+    
+    // Safely call the phase change callback
+    try {
+      if (onPhaseChange) {
+        onPhaseChange(newPhase);
+      }
+      
+      // Special case for RESULT phase to determine winner
+      if (newPhase === PHASES.RESULT && onDetermineWinner) {
+        // Small delay to ensure UI is ready for winner animation
+        setTimeout(() => {
+          try {
+            onDetermineWinner();
+          } catch (error) {
+            console.error('Error in determine winner callback:', error);
+          }
+        }, 50);
+      }
+    } catch (error) {
+      console.error('Error in phase change callback:', error);
+    }
+  }, [onPhaseChange, onDetermineWinner]);
   
   // Update the display timer smoothly
   const updateDisplayTimer = useCallback(() => {
@@ -68,12 +96,39 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
     const elapsed = (now - lastUpdateTimeRef.current) / 1000;
     lastUpdateTimeRef.current = now;
     
+    // Update local timer if server connection is lost
+    if (localTimerActiveRef.current) {
+      if (Date.now() - lastServerUpdateRef.current > SERVER_CONFIG.CONNECTION_TIMEOUT * 3) {
+        // Decrease the timer at a consistent rate
+        mainTimerRef.current = Math.max(0, mainTimerRef.current - elapsed);
+        
+        // Handle timer looping and phase changes
+        if (mainTimerRef.current <= 0) {
+          mainTimerRef.current = GAME_CONFIG.ROUND_DURATION;
+          gamePhaseRef.current = PHASES.BETTING;
+          setGamePhase(PHASES.BETTING);
+          safeHandlePhaseChange(PHASES.BETTING);
+        } else if (mainTimerRef.current <= 3 && gamePhaseRef.current !== PHASES.RESET) {
+          gamePhaseRef.current = PHASES.RESET;
+          setGamePhase(PHASES.RESET);
+          safeHandlePhaseChange(PHASES.RESET);
+        } else if (mainTimerRef.current <= 8 && mainTimerRef.current > 3 && gamePhaseRef.current !== PHASES.RESULT) {
+          gamePhaseRef.current = PHASES.RESULT;
+          setGamePhase(PHASES.RESULT);
+          safeHandlePhaseChange(PHASES.RESULT);
+        } else if (mainTimerRef.current > 8 && gamePhaseRef.current !== PHASES.BETTING) {
+          gamePhaseRef.current = PHASES.BETTING;
+          setGamePhase(PHASES.BETTING);
+          safeHandlePhaseChange(PHASES.BETTING);
+        }
+      }
+    }
+    
     // Calculate the target phase timer value
     const targetPhaseTimer = calculatePhaseTimer();
     
     // Smoothly update the displayed phase timer
     setPhaseTimer(prevTimer => {
-      // Move toward target value with slight interpolation for smoothness
       const diff = targetPhaseTimer - prevTimer;
       
       if (Math.abs(diff) < 0.1) {
@@ -87,22 +142,29 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
     
     // Continue animation loop
     animationRef.current = requestAnimationFrame(updateDisplayTimer);
-  }, [calculatePhaseTimer]);
-  
-  // Start animation loop
-  useEffect(() => {
-    animationRef.current = requestAnimationFrame(updateDisplayTimer);
-    return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
-  }, [updateDisplayTimer]);
+  }, [calculatePhaseTimer, safeHandlePhaseChange]);
   
   // Connect to socket server
-  useEffect(() => {
-    console.log('Connecting to local game server...');
+  const connectToServer = useCallback(() => {
+    if (connectionAttemptRef.current >= maxConnectionAttempts) {
+      console.log(`Max connection attempts (${maxConnectionAttempts}) reached, using local timer`);
+      if (!localTimerActiveRef.current) {
+        localTimerActiveRef.current = true;
+        startLocalFallbackTimer();
+      }
+      return;
+    }
+    
+    connectionAttemptRef.current++;
+    console.log(`Connecting to server (attempt ${connectionAttemptRef.current}/${maxConnectionAttempts})...`);
+    
     socketRef.current = io(SERVER_CONFIG.BASE_URL, {
       ...SERVER_CONFIG.SOCKET_OPTIONS,
       transports: ['websocket'], // Force websocket for local connections
+      reconnection: true,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 1000,
+      timeout: SERVER_CONFIG.CONNECTION_TIMEOUT,
     });
     
     // Set connection timeout
@@ -116,6 +178,10 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
 
     // Process server updates
     socketRef.current.on('timerUpdate', (data) => {
+      // Mark as server synced
+      serverSyncedRef.current = true;
+      lastServerUpdateRef.current = Date.now();
+      
       // Update main timer
       mainTimerRef.current = data.timer;
       
@@ -130,46 +196,73 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
         setGamePhase(data.phase);
         
         console.log(`Phase changed from ${oldPhase} to ${data.phase}`);
-        
-        // Reset the phase timer when phase changes for clean transitions
-        const newPhaseTimer = data.phase === PHASES.BETTING ? GAME_CONFIG.BETTING_DURATION :
-                             data.phase === PHASES.RESULT ? GAME_CONFIG.RESULT_DURATION :
-                             GAME_CONFIG.RESET_DURATION;
-        
-        if (onPhaseChange) {
-          onPhaseChange(data.phase);
-        }
-        
-        if (data.phase === PHASES.RESULT && onDetermineWinner) {
-          console.log('Server triggered determine winner');
-          onDetermineWinner();
-        }
+        safeHandlePhaseChange(data.phase);
       }
     });
 
     // Connection handling
     socketRef.current.on('connect', () => {
-      console.log('Connected to local game server');
+      console.log('Connected to game server');
       localTimerActiveRef.current = false;
+      connectionAttemptRef.current = 0; // Reset attempts counter on successful connection
     });
 
     socketRef.current.on('connect_error', (error) => {
-      console.error('Local server connection error:', error);
+      console.error('Server connection error:', error);
+      // Try to reconnect
+      setTimeout(() => {
+        if (socketRef.current) {
+          socketRef.current.disconnect();
+          socketRef.current = null;
+          connectToServer();
+        }
+      }, 2000);
+      
       if (!localTimerActiveRef.current && SERVER_CONFIG.USE_LOCAL_FALLBACK) {
         localTimerActiveRef.current = true;
         startLocalFallbackTimer();
       }
     });
 
+    socketRef.current.on('disconnect', (reason) => {
+      console.log(`Disconnected from server: ${reason}`);
+      if (reason === 'io server disconnect') {
+        // The server has forcefully disconnected
+        setTimeout(() => {
+          if (socketRef.current) {
+            socketRef.current.connect();
+          }
+        }, 2000);
+      }
+      
+      // Switch to local timer if not already active
+      if (!localTimerActiveRef.current && SERVER_CONFIG.USE_LOCAL_FALLBACK) {
+        localTimerActiveRef.current = true;
+        startLocalFallbackTimer();
+      }
+    });
+  }, [safeHandlePhaseChange, startLocalFallbackTimer]);
+  
+  // Start animation loop
+  useEffect(() => {
+    animationRef.current = requestAnimationFrame(updateDisplayTimer);
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [updateDisplayTimer]);
+  
+  // Connect to server on component mount
+  useEffect(() => {
+    connectToServer();
+    
     // Clean up
     return () => {
       if (socketRef.current) {
-        console.log('Disconnecting from local game server');
         socketRef.current.disconnect();
+        socketRef.current = null;
       }
-      clearTimeout(connectionTimeout);
     };
-  }, [onPhaseChange, onDetermineWinner]);
+  }, [connectToServer]);
 
   // Fallback local timer implementation
   const localTimerRef = useRef(null);
@@ -179,70 +272,17 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
       cancelAnimationFrame(localTimerRef.current);
     }
     
-    console.warn('Starting smooth local fallback timer');
+    console.warn('Starting local fallback timer');
     
-    // Initialize values
-    mainTimerRef.current = 30;
-    gamePhaseRef.current = PHASES.BETTING;
-    setGamePhase(PHASES.BETTING);
-    
-    if (onPhaseChange) {
-      onPhaseChange(PHASES.BETTING);
+    // Skip initialization if we have server data
+    if (!serverSyncedRef.current) {
+      // Initialize values
+      mainTimerRef.current = GAME_CONFIG.ROUND_DURATION;
+      gamePhaseRef.current = PHASES.BETTING;
+      setGamePhase(PHASES.BETTING);
+      safeHandlePhaseChange(PHASES.BETTING);
     }
-    
-    // Use performance API for smooth animation
-    let lastTickTime = performance.now();
-    
-    const tick = () => {
-      if (!localTimerActiveRef.current) {
-        return; // Stop if server connection restored
-      }
-      
-      const now = performance.now();
-      const deltaTime = (now - lastTickTime) / 1000; // Convert to seconds
-      lastTickTime = now;
-      
-      // Smooth decrease of timer value
-      mainTimerRef.current -= deltaTime;
-      
-      // Reset timer if it's complete
-      if (mainTimerRef.current <= 0) {
-        mainTimerRef.current = 30;
-      }
-      
-      // Update phase based on timer
-      const currentPhase = gamePhaseRef.current;
-      let newPhase = currentPhase;
-      
-      if (mainTimerRef.current > 8) {
-        newPhase = PHASES.BETTING;
-      } else if (mainTimerRef.current > 3) {
-        newPhase = PHASES.RESULT;
-      } else {
-        newPhase = PHASES.RESET;
-      }
-      
-      // Handle phase change
-      if (newPhase !== currentPhase) {
-        gamePhaseRef.current = newPhase;
-        setGamePhase(newPhase);
-        
-        if (onPhaseChange) {
-          onPhaseChange(newPhase);
-        }
-        
-        if (newPhase === PHASES.RESULT && onDetermineWinner) {
-          onDetermineWinner();
-        }
-      }
-      
-      // Continue the animation
-      localTimerRef.current = requestAnimationFrame(tick);
-    };
-    
-    // Start the animation loop
-    localTimerRef.current = requestAnimationFrame(tick);
-  }, [onPhaseChange, onDetermineWinner]);
+  }, [safeHandlePhaseChange]);
 
   // Clean up local timer
   useEffect(() => {
@@ -264,6 +304,7 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
     timer: Math.ceil(mainTimerRef.current), // Original timer
     phaseTimer: Math.ceil(phaseTimer),       // Phase-specific countdown
     gamePhase,
-    timerColor
+    timerColor,
+    isServerConnected: !localTimerActiveRef.current
   };
 }
