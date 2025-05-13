@@ -93,7 +93,7 @@ export const LoginScreen: React.FC = () => {
       // Show alert that OTP has been sent
       Alert.alert(
         'OTP Sent',
-        `the verification code has been sent to +91 ${phoneNumber}`,
+        `that  verification code has been sent to +91 ${phoneNumber}`,
         [{ text: 'OK' }]
       );
     } catch (error: any) {
