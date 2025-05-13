@@ -1,4 +1,3 @@
-// index.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { 
@@ -12,22 +11,24 @@ import {
   Animated,
   Easing,
   Platform,
-  Image
+  Image,
+  Alert
 } from 'react-native';
 import { styles } from '../../styles/index.styles';
 import NotificationBanner from '../../components/NotificationBanner';
-import UserSidebar from '../../components/userSideBar'
+import UserSidebar from '../../components/userSideBar';
 
 const CasinoIndexPage: React.FC = () => {
   const router = useRouter();
   const window = Dimensions.get('window');
   const balanceValue = new Animated.Value(0);
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [balance, setBalance] = useState('1.28');
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const balanceAnimation = balanceValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0', '1.28']
+    outputRange: ['0', balance]
   });
 
   useEffect(() => {
@@ -37,7 +38,7 @@ const CasinoIndexPage: React.FC = () => {
       duration: 1500,
       useNativeDriver: false,
     }).start();
-  }, []);
+  }, [balance]);
 
   // Open sidebar animation
   const openSidebar = () => {
@@ -63,19 +64,59 @@ const CasinoIndexPage: React.FC = () => {
   };
 
   const handleStart = () => {
-    router.push('/(tabs)/GameScreen');
+    try {
+      router.push('/(tabs)/GameScreen');
+    } catch (error) {
+      console.error("Navigation error:", error);
+      Alert.alert("Navigation Error", "Could not navigate to game screen. Please try again.");
+    }
   };
   
-  const handleSettingsPress=()=>
-  {
-    router.push('/settings');
+  const handleSettingsPress = () => {
+    try {
+      // Use the correct path format matching your folder structure
+      router.push('/settings');
+    } catch (error) {
+      console.error("Navigation error:", error);
+      Alert.alert("Navigation Error", "Could not navigate to settings. Please try again.");
+    }
   };
+  
+  const handleAddMoney = () => {
+    try {
+      // Use the correct path format matching your folder structure
+      router.push('/(tabs)/AddMoneyScreen');
+    } catch (error) {
+      console.error("Navigation error:", error);
+      Alert.alert("Navigation Error", "Could not navigate to Add Money screen. Please try again.");
+    }
+  };
+  
+  const handleWithdraw = () => {
+    try {
+      // Use the correct path format matching your folder structure
+      router.push('/');
+    } catch (error) {
+      console.error("Navigation error:", error);
+      Alert.alert("Navigation Error", "Could not navigate to Withdraw screen. Please try again.");
+    }
+  };
+
+  // Listen for wallet balance changes
+  useEffect(() => {
+    // In a real app, you would have a function to fetch the updated balance
+    const checkForBalanceUpdates = () => {
+      // This would typically be an API call to check for balance updates
+    };
+    
+    const intervalId = setInterval(checkForBalanceUpdates, 30000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#8B4513" barStyle="light-content" />
-      
-     
       
       {/* Header with logo, user info and balance */}
       <View style={styles.header}>
@@ -105,12 +146,14 @@ const CasinoIndexPage: React.FC = () => {
           <TouchableOpacity 
             style={[styles.actionButton, {backgroundColor: '#4CAF50'}]}
             activeOpacity={0.7}
+            onPress={handleAddMoney}
           >
             <Text style={styles.buttonText}>Add</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.actionButton, styles.withdrawButton]}
             activeOpacity={0.7}
+            onPress={handleWithdraw}
           >
             <Text style={styles.buttonText}>Withdraw</Text>
           </TouchableOpacity>
