@@ -305,7 +305,7 @@ export const styles = StyleSheet.create({
   navItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: size(8), // Reduced from 10
+    paddingHorizontal: size(8), 
     paddingVertical: size(4), // Reduced from 5
   },
   navIcon: {

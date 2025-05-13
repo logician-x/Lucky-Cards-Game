@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
+import 
+{
   View,
   Text,
   TextInput,
@@ -122,9 +123,9 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
-  const handleResendOTP = async () => {
+  const handleResendOTP = async () => 
+  {
     if (resendTimer > 0) return;
-    
     playButtonSound();
     const fullPhoneNumber = '+91' + phoneNumber;
     

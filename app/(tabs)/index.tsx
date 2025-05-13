@@ -1,5 +1,5 @@
 // index.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { 
   View, 
@@ -16,11 +16,15 @@ import {
 } from 'react-native';
 import { styles } from '../../styles/index.styles';
 import NotificationBanner from '../../components/NotificationBanner';
+import UserSidebar from '../../components/userSideBar'
 
 const CasinoIndexPage: React.FC = () => {
   const router = useRouter();
   const window = Dimensions.get('window');
   const balanceValue = new Animated.Value(0);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
   const balanceAnimation = balanceValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0', '1.28']
@@ -35,21 +39,51 @@ const CasinoIndexPage: React.FC = () => {
     }).start();
   }, []);
 
+  // Open sidebar animation
+  const openSidebar = () => {
+    setSidebarVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.cubic),
+    }).start();
+  };
+
+  // Close sidebar animation
+  const closeSidebar = () => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.cubic),
+    }).start(() => {
+      setSidebarVisible(false);
+    });
+  };
+
   const handleStart = () => {
     router.push('/(tabs)/GameScreen');
   };
+  
   const handleSettingsPress=()=>
   {
     router.push('/settings');
-  }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#8B4513" barStyle="light-content" />
       
+     
+      
       {/* Header with logo, user info and balance */}
       <View style={styles.header}>
         <View style={styles.userInfo}>
-          <TouchableOpacity style={styles.avatar}>
+          <TouchableOpacity 
+            style={styles.avatar}
+            onPress={openSidebar}
+          >
             <Text style={styles.avatarText}>JD</Text>
           </TouchableOpacity>
           <View style={styles.userTextContainer}>
@@ -83,24 +117,22 @@ const CasinoIndexPage: React.FC = () => {
         </View>
         
         <View style={styles.iconButtonGroup}>
-        <TouchableOpacity 
-        style={styles.iconButton}
-        onPress={handleSettingsPress}
-        >
-        <Text style={{fontSize: 18}}>⚙️</Text>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={handleSettingsPress}
+          >
+            <Text style={{fontSize: 18}}>⚙️</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
             <Text style={{fontSize: 18}}>📋</Text>
           </TouchableOpacity>
         </View>
       </View>
       
-    
-      
       {/* Main content */}
       <View style={styles.backgroundContainer}>
-          {/* Notification banner component */}
-      <NotificationBanner />
+        {/* Notification banner component */}
+        <NotificationBanner />
         <ScrollView contentContainerStyle={styles.mainContent}>
           {/* Logo/Featured Game */}
           <TouchableOpacity
@@ -145,6 +177,12 @@ const CasinoIndexPage: React.FC = () => {
           <Text style={styles.navLabel}>Promotions</Text>
         </TouchableOpacity>
       </View>
+       {/* User Sidebar */}
+      <UserSidebar 
+        visible={sidebarVisible} 
+        onClose={closeSidebar} 
+        slideAnim={slideAnim}
+      />
     </SafeAreaView>
   );
 };
