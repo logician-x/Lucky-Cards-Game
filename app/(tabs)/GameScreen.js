@@ -62,6 +62,15 @@ const GameScreen = () => {
   const animations = setupAnimations();
   const { scaleAnim, winnerScale, confettiOpacity, resetFade } = animations;
   
+
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Connecting to server...</p>
+      </div>
+    );
+  }
   // Initialize all bets structure
   useEffect(() => {
     const initialAllBets = {};
@@ -156,7 +165,7 @@ const GameScreen = () => {
   }, [bets, winnerScale, confettiOpacity]);
 
   // Initialize server-synchronized game timer hook
-  const { gamePhase, phaseTimer, timerColor, isServerConnected } = useServerGameTimer(
+  const { gamePhase, phaseTimer, timerColor,isConnected, isLoading } = useServerGameTimer(
     handlePhaseChange,
     determineWinnerHandler
   );
@@ -370,7 +379,7 @@ const GameScreen = () => {
               phaseTimer={phaseTimer} 
               scaleAnim={scaleAnim} 
               timerColor={timerColor()} 
-              isServerConnected={isServerConnected}
+              isServerConnected={isConnected}
             />
              
             <TouchableOpacity 
