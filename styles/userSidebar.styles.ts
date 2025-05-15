@@ -155,4 +155,84 @@ export const userSidebarStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
+   modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+ modalContainer: {
+  backgroundColor: '#1A1205',
+  margin: 20,
+  borderRadius: 12,
+  padding: 15,                    
+  width: '75%',                  
+  borderWidth: 2,
+  borderColor: '#F5C518',        
+  shadowColor: '#F5C518',
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 0.3,
+  shadowRadius: 10,
+  elevation: 5,
+},
+
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#F5C518', // Yellow text
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1
+  },
+  avatarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    marginVertical: 10
+  },
+  avatarButton: {
+    margin: 8,
+    borderWidth: 2,
+    borderRadius: 35,
+    padding: 3,
+    borderColor: '#F5C518', // Yellow border
+    backgroundColor: '#2A1F0D' // Lighter brown background
+  },
+  avatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 25,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#3A2A12' // Subtle separator
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#3A2A12', // Dark brown button
+    paddingVertical: 12,
+    borderRadius: 25,
+    marginHorizontal: 6
+  },
+  confirmButton: {
+    flex: 1,
+    backgroundColor: '#F5C518', // Yellow button
+    paddingVertical: 12,
+    borderRadius: 25,
+    marginHorizontal: 6
+  },
+  cancelButtonText: {
+    textAlign: 'center',
+    color: '#F5C518', // Yellow text
+    fontWeight: 'bold'
+  },
+  confirmButtonText: {
+    textAlign: 'center',
+    color: '#1A1205', // Dark brown text
+    fontWeight: 'bold'
+  }
 });

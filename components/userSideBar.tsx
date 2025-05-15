@@ -1,51 +1,113 @@
 // UserSidebar.tsx
-import React from 'react';
+import React,{useState} from 'react';
 import { 
   View, 
+  Modal,
   Text, 
+  ImageSourcePropType,
   TouchableOpacity, 
-  StyleSheet, 
   Image, 
   Animated, 
   Dimensions,
   ScrollView,
-  Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { userSidebarStyles as styles } from '../styles/userSidebar.styles';
-
+import { getAuth, signOut } from 'firebase/auth';
 interface UserSidebarProps {
   visible: boolean;
   onClose: () => void;
   slideAnim: Animated.Value;
 }
 
+const avatarOptions = [
+  require('../assets/avatars/avatar1.png'),
+  require('../assets/avatars/avatar2.png'),
+  require('../assets/avatars/avatar3.jpg'),
+  require('../assets/avatars/avatar4.jpg'),
+];
 const UserSidebar: React.FC<UserSidebarProps> = ({ visible, onClose, slideAnim }) => {
   const router = useRouter();
   const window = Dimensions.get('window');
-  
-  if (!visible) {
-    return null;
-  }
+  const [profileImage, setProfileImage] = useState(avatarOptions[0]);
+  const [selectedAvatar, setSelectedAvatar] = useState<ImageSourcePropType | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+
 
   const sidebarStyle = {
     transform: [
-      { translateX: slideAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [-300, 0]
-      })}
-    ]
+      {
+        translateX: slideAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-300, 0],
+        }),
+      },
+    ],
+  };
+
+  const handleAvatarSelect = (image: ImageSourcePropType) => {
+    setProfileImage(image);
+    setModalVisible(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(getAuth());
+      router.replace('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
-    <View style={styles.container}>
+     <View style={[styles.container, { display: visible ? 'flex' : 'none' }]}>
       {/* Dark overlay */}
       <TouchableOpacity 
         style={styles.overlay}
         activeOpacity={1}
         onPress={onClose}
       />
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContainer}>
+      <Text style={styles.modalTitle}>
+        Select Your Avatar
+      </Text>
       
+      <View style={styles.avatarGrid}>
+        {avatarOptions.map((img, index) => (
+          <TouchableOpacity
+  key={index}
+  onPress={() => {
+    setProfileImage(img);       // Immediately set avatar
+    setModalVisible(false);     // Close modal
+  }}
+  style={[
+    styles.avatarButton,
+    profileImage === img && styles.avatarImage,  // Highlight selected avatar
+  ]}
+>
+  <Image source={img} style={styles.avatarImage} />
+</TouchableOpacity>
+        ))}
+      </View>
+      
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity 
+          onPress={() => setModalVisible(false)}
+          style={styles.cancelButton}
+        >
+          <Text style={styles.cancelButtonText}>
+            CANCEL
+          </Text>
+        </TouchableOpacity>
+        
+       
+      </View>
+    </View>
+  </View>
+</Modal>
       {/* Sidebar Content */}
       <Animated.View style={[styles.sidebar, sidebarStyle, { height: window.height }]}>
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -53,12 +115,11 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ visible, onClose, slideAnim }
           <View style={styles.profileSection}>
             <View style={styles.profileImageContainer}>
               <Image
-                source={require('../assets/images/profile-placeholder.png')}
-                style={styles.profileImage}
-                defaultSource={require('../assets/images/profile-placeholder.png')}
+                source={profileImage}
+              style={styles.profileImage}
               />
-              <TouchableOpacity style={styles.editButton}>
-                <Text style={styles.editText}>Edit</Text>
+              <TouchableOpacity style={styles.editButton} onPress={() => setModalVisible(true)}>
+              <Text style={styles.editText}>Edit</Text>
               </TouchableOpacity>
             </View>
             
@@ -94,7 +155,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ visible, onClose, slideAnim }
           
 
           {/* Logout Button */}
-          <TouchableOpacity style={styles.logoutButton}>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
             <View style={styles.logoutContent}>
               <Text style={styles.logoutIcon}>🚪</Text>
               <Text style={styles.logoutText}>Logout</Text>

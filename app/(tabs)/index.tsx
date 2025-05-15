@@ -68,9 +68,10 @@ const CasinoIndexPage: React.FC = () => {
   
   const handleSettingsPress=()=>
   {
+    console.log("Settings button pressed");
     router.push('/settings');
   };
-
+ 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#8B4513" barStyle="light-content" />
@@ -120,6 +121,7 @@ const CasinoIndexPage: React.FC = () => {
           <TouchableOpacity 
             style={styles.iconButton}
             onPress={handleSettingsPress}
+            
           >
             <Text style={{fontSize: 18}}>⚙️</Text>
           </TouchableOpacity>
