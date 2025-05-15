@@ -20,7 +20,9 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
   const localTimerActiveRef = useRef(false);
   const lastUpdateTimeRef = useRef(performance.now());
   const connectionAttemptRef = useRef(0);
-  const maxConnectionAttempts = 3;
+  const maxConnectionAttempts = 5; // Increased from 3 to 5
+  const reconnectingRef = useRef(false);
+  const roundCompletionCountRef = useRef(0); // Track round completions
   
   // Deduplicate phase change triggers
   const lastPhaseChangeTimeRef = useRef({});
@@ -89,6 +91,20 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
       console.error('Error in phase change callback:', error);
     }
   }, [onPhaseChange, onDetermineWinner]);
+
+  // Fallback local timer implementation
+  const startLocalFallbackTimer = useCallback(() => {
+    console.warn('Starting local fallback timer');
+    
+    // Skip initialization if we have server data
+    if (!serverSyncedRef.current) {
+      // Initialize values
+      mainTimerRef.current = GAME_CONFIG.ROUND_DURATION;
+      gamePhaseRef.current = PHASES.BETTING;
+      setGamePhase(PHASES.BETTING);
+      safeHandlePhaseChange(PHASES.BETTING);
+    }
+  }, [safeHandlePhaseChange]);
   
   // Update the display timer smoothly
   const updateDisplayTimer = useCallback(() => {
@@ -108,6 +124,22 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
           gamePhaseRef.current = PHASES.BETTING;
           setGamePhase(PHASES.BETTING);
           safeHandlePhaseChange(PHASES.BETTING);
+          
+          // Track round completions
+          roundCompletionCountRef.current++;
+          
+          // Try to reconnect when the round resets
+          if (!reconnectingRef.current) {
+            reconnectingRef.current = true;
+            console.log('Round completed in local mode, resetting connection attempts');
+            connectionAttemptRef.current = 0; // Reset connection counter
+            
+            setTimeout(() => {
+              console.log('Attempting reconnection after round completion');
+              connectToServer();
+              reconnectingRef.current = false;
+            }, 1000);
+          }
         } else if (mainTimerRef.current <= 3 && gamePhaseRef.current !== PHASES.RESET) {
           gamePhaseRef.current = PHASES.RESET;
           setGamePhase(PHASES.RESET);
@@ -142,27 +174,47 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
     
     // Continue animation loop
     animationRef.current = requestAnimationFrame(updateDisplayTimer);
-  }, [calculatePhaseTimer, safeHandlePhaseChange]);
+  }, [calculatePhaseTimer, safeHandlePhaseChange, connectToServer]);
   
   // Connect to socket server
   const connectToServer = useCallback(() => {
+    // Reset connection attempts if enough time has passed since last attempt
+    const timeSinceLastUpdate = Date.now() - lastServerUpdateRef.current;
+    if (timeSinceLastUpdate > 60000) { // 1 minute
+      console.log('Resetting connection attempt counter due to timeout');
+      connectionAttemptRef.current = 0;
+    }
+    
     if (connectionAttemptRef.current >= maxConnectionAttempts) {
       console.log(`Max connection attempts (${maxConnectionAttempts}) reached, using local timer`);
       if (!localTimerActiveRef.current) {
         localTimerActiveRef.current = true;
         startLocalFallbackTimer();
       }
+      
+      // Schedule retry after some time
+      setTimeout(() => {
+        console.log('Retrying server connection after cooldown period');
+        connectionAttemptRef.current = 0; // Reset counter after cooldown
+      }, 30000); // Try again after 30 seconds
+      
       return;
     }
     
     connectionAttemptRef.current++;
     console.log(`Connecting to server (attempt ${connectionAttemptRef.current}/${maxConnectionAttempts})...`);
     
+    // Close existing socket if it exists
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    
     socketRef.current = io(SERVER_CONFIG.BASE_URL, {
       ...SERVER_CONFIG.SOCKET_OPTIONS,
       transports: ['websocket'], // Force websocket for local connections
       reconnection: true,
-      reconnectionAttempts: 3,
+      reconnectionAttempts: 5, // Increased from 3
       reconnectionDelay: 1000,
       timeout: SERVER_CONFIG.CONNECTION_TIMEOUT,
     });
@@ -197,6 +249,37 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
         
         console.log(`Phase changed from ${oldPhase} to ${data.phase}`);
         safeHandlePhaseChange(data.phase);
+        
+        // Track round completions when transitioning to RESET phase
+        if (data.phase === PHASES.RESET) {
+          console.log('Detected RESET phase, preparing for potential reconnection');
+          roundCompletionCountRef.current++;
+          
+          // Force connection reset every few rounds to avoid stale connections
+          if (roundCompletionCountRef.current % 3 === 0) {
+            console.log('Performing preventative connection reset after multiple rounds');
+            setTimeout(() => {
+              if (socketRef.current) {
+                socketRef.current.disconnect();
+                socketRef.current = null;
+                connectionAttemptRef.current = 0; // Reset counter
+                
+                setTimeout(() => {
+                  if (!reconnectingRef.current) {
+                    reconnectingRef.current = true;
+                    connectToServer();
+                    reconnectingRef.current = false;
+                  }
+                }, 1000);
+              }
+            }, 500);
+          }
+        }
+      }
+      
+      // If timer is very low, prepare for potential disconnection
+      if (data.timer <= 3 && data.phase === PHASES.RESET) {
+        console.log('End of round detected, preparing for potential reconnection');
       }
     });
 
@@ -205,16 +288,29 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
       console.log('Connected to game server');
       localTimerActiveRef.current = false;
       connectionAttemptRef.current = 0; // Reset attempts counter on successful connection
+      lastServerUpdateRef.current = Date.now(); // Update the timestamp on successful connection
     });
 
     socketRef.current.on('connect_error', (error) => {
       console.error('Server connection error:', error);
+      
+      // Try to reset connection attempts occasionally to prevent permanent lockout
+      const now = Date.now();
+      if (now - lastServerUpdateRef.current > 60000) { // 1 minute
+        console.log('Resetting connection attempt counter due to extended outage');
+        connectionAttemptRef.current = 0;
+      }
+      
       // Try to reconnect
       setTimeout(() => {
         if (socketRef.current) {
           socketRef.current.disconnect();
           socketRef.current = null;
-          connectToServer();
+          if (!reconnectingRef.current) {
+            reconnectingRef.current = true;
+            connectToServer();
+            reconnectingRef.current = false;
+          }
         }
       }, 2000);
       
@@ -226,11 +322,29 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
 
     socketRef.current.on('disconnect', (reason) => {
       console.log(`Disconnected from server: ${reason}`);
-      if (reason === 'io server disconnect') {
-        // The server has forcefully disconnected
+      
+      // Reset connection counter if the disconnect happens after a game phase
+      if (gamePhaseRef.current === PHASES.RESET || mainTimerRef.current <= 3) {
+        console.log('Disconnected during/after reset phase, resetting connection counter and attempting reconnect');
+        connectionAttemptRef.current = 0; // Reset the counter to ensure we can reconnect
+        
         setTimeout(() => {
-          if (socketRef.current) {
-            socketRef.current.connect();
+          if (!reconnectingRef.current) {
+            reconnectingRef.current = true;
+            connectToServer();
+            reconnectingRef.current = false;
+          }
+        }, 1500);
+      } else if (reason === 'io server disconnect' || reason === 'transport close') {
+        // The server has forcefully disconnected
+        console.log('Server forced disconnect, resetting connection counter');
+        connectionAttemptRef.current = 0; // Reset counter to ensure we can reconnect
+        
+        setTimeout(() => {
+          if (!reconnectingRef.current) {
+            reconnectingRef.current = true;
+            connectToServer();
+            reconnectingRef.current = false;
           }
         }, 2000);
       }
@@ -241,11 +355,37 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
         startLocalFallbackTimer();
       }
     });
+    
+    // Handle reconnect attempts
+    socketRef.current.io.on("reconnect_attempt", (attempt) => {
+      console.log(`Reconnection attempt ${attempt}`);
+    });
+    
+    socketRef.current.io.on("reconnect", (attempt) => {
+      console.log(`Reconnected after ${attempt} attempts`);
+      connectionAttemptRef.current = 0;
+      localTimerActiveRef.current = false;
+    });
+    
+    socketRef.current.io.on("reconnect_error", (error) => {
+      console.error("Reconnection error:", error);
+    });
+    
+    socketRef.current.io.on("reconnect_failed", () => {
+      console.error("Failed to reconnect");
+      if (!localTimerActiveRef.current && SERVER_CONFIG.USE_LOCAL_FALLBACK) {
+        localTimerActiveRef.current = true;
+        startLocalFallbackTimer();
+      }
+    });
+    
   }, [safeHandlePhaseChange, startLocalFallbackTimer]);
   
-  // Start animation loop
+  // Resolve circular dependency
   useEffect(() => {
-    animationRef.current = requestAnimationFrame(updateDisplayTimer);
+    const updateDisplayTimerFunction = updateDisplayTimer;
+    // Start animation loop
+    animationRef.current = requestAnimationFrame(updateDisplayTimerFunction);
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
@@ -253,10 +393,39 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
   
   // Connect to server on component mount
   useEffect(() => {
+    // Reset connection counter on initial mount
+    connectionAttemptRef.current = 0;
     connectToServer();
+    
+    // Setup a heartbeat to check connection status
+    const heartbeatInterval = setInterval(() => {
+      const now = Date.now();
+      // If we haven't received an update in a while and we're not in local mode
+      if ((now - lastServerUpdateRef.current > SERVER_CONFIG.CONNECTION_TIMEOUT * 2) && 
+          !localTimerActiveRef.current && 
+          socketRef.current) {
+        console.log('Server heartbeat missing, checking connection...');
+        
+        // Reset connection attempts if we've been in local mode too long
+        if (now - lastServerUpdateRef.current > 60000) { // 1 minute
+          connectionAttemptRef.current = 0;
+        }
+        
+        // If socket exists but seems inactive
+        if (socketRef.current && (!socketRef.current.connected || socketRef.current.disconnected)) {
+          console.log('Socket appears disconnected, attempting reconnect');
+          if (!reconnectingRef.current) {
+            reconnectingRef.current = true;
+            connectToServer();
+            reconnectingRef.current = false;
+          }
+        }
+      }
+    }, 5000); // Check every 5 seconds
     
     // Clean up
     return () => {
+      clearInterval(heartbeatInterval);
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -264,31 +433,11 @@ export default function useServerGameTimer(onPhaseChange, onDetermineWinner) {
     };
   }, [connectToServer]);
 
-  // Fallback local timer implementation
-  const localTimerRef = useRef(null);
-  
-  const startLocalFallbackTimer = useCallback(() => {
-    if (localTimerRef.current) {
-      cancelAnimationFrame(localTimerRef.current);
-    }
-    
-    console.warn('Starting local fallback timer');
-    
-    // Skip initialization if we have server data
-    if (!serverSyncedRef.current) {
-      // Initialize values
-      mainTimerRef.current = GAME_CONFIG.ROUND_DURATION;
-      gamePhaseRef.current = PHASES.BETTING;
-      setGamePhase(PHASES.BETTING);
-      safeHandlePhaseChange(PHASES.BETTING);
-    }
-  }, [safeHandlePhaseChange]);
-
   // Clean up local timer
   useEffect(() => {
     return () => {
-      if (localTimerRef.current) {
-        cancelAnimationFrame(localTimerRef.current);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
     };
   }, []);
