@@ -32,6 +32,7 @@ import {
   animateCoinsToWallet, 
   animateCoinPlacement 
 } from '../../animations/gameAnimations';
+import { router } from 'expo-router';
 
 // Memoized Game Item for better performance
 const MemoizedGameItem = memo(GameItem);
@@ -62,6 +63,15 @@ const GameScreen = () => {
   const animations = setupAnimations();
   const { scaleAnim, winnerScale, confettiOpacity, resetFade } = animations;
   
+
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Connecting to server...</p>
+      </div>
+    );
+  }
   // Initialize all bets structure
   useEffect(() => {
     const initialAllBets = {};
@@ -156,35 +166,16 @@ const GameScreen = () => {
   }, [bets, winnerScale, confettiOpacity]);
 
   // Initialize server-synchronized game timer hook
-  const { gamePhase, phaseTimer, timerColor, isServerConnected } = useServerGameTimer(
+  const { gamePhase, phaseTimer, timerColor,isConnected, isLoading } = useServerGameTimer(
     handlePhaseChange,
     determineWinnerHandler
   );
+  
 
   // Add funds to wallet
   const handleAddPress = useCallback(() => {
-    // Prevent multiple rapid presses
-    if (isAddingCoins) return;
-    
-    setIsAddingCoins(true);
-    
-    // Add coins with animation
-    const addAmount = 500;
-    setWalletBalance(prev => prev + addAmount);
-    
-    // Show notification
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      // Use native haptic feedback if available
-      if (Platform.OS === 'ios' && Haptics) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-    }
-    
-    // Reset flag after animation completes
-    setTimeout(() => {
-      setIsAddingCoins(false);
-    }, 1000);
-  }, [isAddingCoins]);
+    router.push('/(tabs)/AddMoneyScreen')
+  });
   
   // Reset bets function with improved state updates
   const resetBets = useCallback(() => {
@@ -370,7 +361,7 @@ const GameScreen = () => {
               phaseTimer={phaseTimer} 
               scaleAnim={scaleAnim} 
               timerColor={timerColor()} 
-              isServerConnected={isServerConnected}
+              isServerConnected={isConnected}
             />
              
             <TouchableOpacity 

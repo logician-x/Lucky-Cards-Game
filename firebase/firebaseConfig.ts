@@ -4,6 +4,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 // ✅ Compat imports (needed for expo-firebase-recaptcha)
 import firebase from 'firebase/compat/app';

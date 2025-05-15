@@ -40,7 +40,7 @@ export const styles = StyleSheet.create({
   },
   selectedChip: {
     opacity: 1,
-    transform: [{ scale: 1.75 }],
+    transform: [{ scale: 1.5 }],
     elevation: 5, // For Android
   },
   disabledChip: {

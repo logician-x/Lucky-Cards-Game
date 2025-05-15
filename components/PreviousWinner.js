@@ -22,7 +22,7 @@ const PreviousWinner = ({ prevWinnerIndex, previousWinners, winnersCount }) => {
           source={itemImages[displayIndex]} 
           style={styles.previousWinnerImage}
         />
-        <Text style={styles.previousWinnerName}>{itemNames[displayIndex]}</Text>
+        {/* <Text style={styles.previousWinnerName}>{itemNames[displayIndex]}</Text> */}
       </View>
       <Text style={styles.winnersCountText}>🏆 x{displayWinnersCount} winners</Text>
     </View>

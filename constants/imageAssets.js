@@ -11,7 +11,12 @@ import cow from '../assets/images/cow.jpg';
 import bucket from '../assets/images/bucket.jpeg';
 import crow from '../assets/images/crow.jpg';
 import rabbit from '../assets/images/rabbit.jpg';
-import coin from '../assets/images/coin.png';
+import coin5 from '../assets/images/5.png';
+import coin10 from '../assets/images/10.png';
+import coin20 from '../assets/images/20.png';
+import coin50 from '../assets/images/50.png';
+import coin100 from '../assets/images/100.png';
+import coin500 from '../assets/images/500.png';
 import coin1 from '../assets/images/coin1.png';
 import walletIcon from '../assets/images/avtar.png';
 import ladyPresenter from '../assets/images/lady.png';
@@ -26,12 +31,12 @@ export const itemImages = [
 
 // Coin images - separate images for each denomination
 export const coinImages = {
-  5: coin,
-  10: coin,
-  20: coin,
-  30: coin,
-  70: coin,
-  100: coin,
+  5: coin5,
+  10: coin10,
+  20: coin20,
+  50: coin50,
+  100: coin100,
+  500: coin500,
 };
 
 // Generic placed bet coin image (visible to all users)

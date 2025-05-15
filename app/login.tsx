@@ -26,7 +26,7 @@ import { translations } from '../localization/translations';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { FooterIcons } from '../components/FooterIcons';
 
-export const LoginScreen: React.FC = () => {
+export const login: React.FC = () => {
   const router = useRouter();
   const { language, theme, playButtonSound } = useAppContext();
   const styles = useResponsiveStyles();
@@ -324,4 +324,4 @@ export const LoginScreen: React.FC = () => {
   );
 };
 
-export default LoginScreen;
+export default login;
