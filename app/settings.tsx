@@ -1,4 +1,3 @@
-// src/screens/SettingsScreen.tsx
 import React from 'react';
 import {
   View,
@@ -7,15 +6,15 @@ import {
   ScrollView,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router'; // Changed from useNavigation
 import { useAppContext } from '../contexts/AppContext';
 import { useResponsiveStyles } from '../hooks/useResponsiveStyles';
 import { translations } from '../localization/translations';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { SoundToggle } from '../components/SoundToggle';
 
-export const SettingsScreen = () => {
-  const navigation = useNavigation();
+export default function SettingsScreen() {
+  const router = useRouter(); // Changed from useNavigation
   const {
     language,
     setLanguage,
@@ -31,7 +30,7 @@ export const SettingsScreen = () => {
     if (soundEnabled) {
       playButtonSound();
     }
-    navigation.goBack();
+    router.back(); // Changed from navigation.goBack()
   };
   
   const handleLanguageChange = (lang: 'english' | 'hindi') => {
@@ -105,6 +104,4 @@ export const SettingsScreen = () => {
       </ScrollView>
     </View>
   );
-};
-
-export default SettingsScreen;
+}

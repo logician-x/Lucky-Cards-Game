@@ -1,12 +1,11 @@
-// index.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { 
   View, 
   Text, 
-  SafeAreaView, 
+  SafeAreaView,         
   TouchableOpacity, 
-  ScrollView, 
+  ScrollView,
   StatusBar,
   Dimensions,
   Animated,
@@ -66,8 +65,7 @@ const CasinoIndexPage: React.FC = () => {
     router.push('/(tabs)/GameScreen');
   };
   
-  const handleSettingsPress=()=>
-  {
+  const handleSettingsPress = () => {
     console.log("Settings button pressed");
     router.push('/settings');
   };
@@ -121,7 +119,6 @@ const CasinoIndexPage: React.FC = () => {
           <TouchableOpacity 
             style={styles.iconButton}
             onPress={handleSettingsPress}
-            
           >
             <Text style={{fontSize: 18}}>⚙️</Text>
           </TouchableOpacity>

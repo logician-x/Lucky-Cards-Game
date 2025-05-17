@@ -116,7 +116,7 @@ export const login: React.FC = () => {
       Alert.alert(
         'Success',
         'Phone number verified successfully!',
-        [{ text: 'Continue', onPress: () => router.push('/') }]
+        [{ text: 'Continue', onPress: () => router.push("/(tabs)") }]
       );
     } catch (error: any) {
       console.error('OTP verification failed:', error);

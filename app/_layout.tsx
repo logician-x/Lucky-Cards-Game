@@ -1,7 +1,8 @@
-import { Slot, useRouter, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useAuth } from '../hooks/useAuth';
 import { AppProvider } from '../contexts/AppContext';
 import LoadingScreen from './loading';
 
@@ -18,18 +19,18 @@ export default function RootLayout() {
     if (!user && inTabsGroup) {
       router.replace('/login');
     } else if (user && !inTabsGroup) {
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/index');
     }
   }, [user, segments, loading]);
 
   if (loading) {
-    return <LoadingScreen />; // 👈 Use your custom screen instead of ActivityIndicator
+    return <LoadingScreen />;
   }
 
   return (
     <AppProvider>
       <StatusBar hidden />
-      <Slot />
+      <Stack screenOptions={{ headerShown: false }} />
     </AppProvider>
   );
 }
