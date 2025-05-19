@@ -1,0 +1,107 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router'; // Changed from useNavigation
+import { useAppContext } from '../../contexts/AppContext';
+import { useResponsiveStyles } from '../../hooks/useResponsiveStyles';
+import { translations } from '../../localization/translations';
+import { ThemeToggle } from '../../components/ThemeToggle';
+import { SoundToggle } from '../../components/SoundToggle';
+
+export default function SettingsScreen() {
+  const router = useRouter(); // Changed from useNavigation
+  const {
+    language,
+    setLanguage,
+    playButtonSound,
+    soundEnabled
+  } = useAppContext();
+  
+  const styles = useResponsiveStyles();
+  const t = translations[language];
+  
+  const handleBackPress = () => {
+    // Only play sound if sound is enabled
+    if (soundEnabled) {
+      playButtonSound();
+    }
+    router.back(); // Changed from navigation.goBack()
+  };
+  
+  const handleLanguageChange = (lang: 'english' | 'hindi') => {
+    // Only play sound if sound is enabled
+    if (soundEnabled) {
+      playButtonSound();
+    }
+    setLanguage(lang);
+  };
+  
+  return (
+    <View style={styles.settingsContainer}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
+        <TouchableOpacity
+          onPress={handleBackPress}
+          style={{ marginRight: 16 }}
+        >
+          <MaterialIcons name="arrow-back" size={24} color="#FFD700" />
+        </TouchableOpacity>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#FFD700' }}>
+          {t.settings}
+        </Text>
+      </View>
+      
+      <ScrollView>
+        {/* Theme Toggle */}
+        <ThemeToggle />
+        
+        {/* Sound Toggle */}
+        <SoundToggle />
+        
+        {/* Language Selection */}
+        <View style={styles.settingRow}>
+          <Text style={styles.settingLabel}>{t.language}</Text>
+          <View style={styles.settingValue}>
+            <TouchableOpacity
+              style={[
+                styles.settingOption,
+                language === 'english' && styles.activeOption
+              ]}
+              onPress={() => handleLanguageChange('english')}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  language === 'english' && styles.activeOptionText
+                ]}
+              >
+                English
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.settingOption,
+                language === 'hindi' && styles.activeOption
+              ]}
+              onPress={() => handleLanguageChange('hindi')}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  language === 'hindi' && styles.activeOptionText
+                ]}
+              >
+                हिंदी
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}

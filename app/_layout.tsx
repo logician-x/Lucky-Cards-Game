@@ -19,7 +19,7 @@ export default function RootLayout() {
     if (!user && inTabsGroup) {
       router.replace('/login');
     } else if (user && !inTabsGroup) {
-      router.replace('/(tabs)/index');
+      router.replace('/(tabs)');
     }
   }, [user, segments, loading]);
 

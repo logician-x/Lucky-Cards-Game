@@ -15,7 +15,9 @@ import {
 } from 'react-native';
 import { styles } from '../../styles/index.styles';
 import NotificationBanner from '../../components/NotificationBanner';
-import UserSidebar from '../../components/userSideBar'
+import UserSidebar from '../../components/userSideBar';
+import NotePad from '../../components/NotePad';
+import PaymentForm from '../../components/PaymentForm';
 
 const CasinoIndexPage: React.FC = () => {
   const router = useRouter();
@@ -23,6 +25,11 @@ const CasinoIndexPage: React.FC = () => {
   const balanceValue = new Animated.Value(0);
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
+  
+  // New state variables for the added components
+  const [notepadVisible, setNotepadVisible] = useState(false);
+  const [addFundsVisible, setAddFundsVisible] = useState(false);
+  const [withdrawVisible, setWithdrawVisible] = useState(false);
 
   const balanceAnimation = balanceValue.interpolate({
     inputRange: [0, 1],
@@ -67,14 +74,25 @@ const CasinoIndexPage: React.FC = () => {
   
   const handleSettingsPress = () => {
     console.log("Settings button pressed");
-    router.push('/settings');
+    router.push("/settings");
+  };
+  
+  // Handlers for new functionality
+  const openNotepad = () => {
+    setNotepadVisible(true);
+  };
+  
+  const openAddFunds = () => {
+    setAddFundsVisible(true);
+  };
+  
+  const openWithdraw = () => {
+    setWithdrawVisible(true);
   };
  
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#8B4513" barStyle="light-content" />
-      
-     
       
       {/* Header with logo, user info and balance */}
       <View style={styles.header}>
@@ -104,12 +122,14 @@ const CasinoIndexPage: React.FC = () => {
           <TouchableOpacity 
             style={[styles.actionButton, {backgroundColor: '#4CAF50'}]}
             activeOpacity={0.7}
+            onPress={openAddFunds}
           >
             <Text style={styles.buttonText}>Add</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.actionButton, styles.withdrawButton]}
             activeOpacity={0.7}
+            onPress={openWithdraw}
           >
             <Text style={styles.buttonText}>Withdraw</Text>
           </TouchableOpacity>
@@ -122,7 +142,10 @@ const CasinoIndexPage: React.FC = () => {
           >
             <Text style={{fontSize: 18}}>⚙️</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={openNotepad}
+          >
             <Text style={{fontSize: 18}}>📋</Text>
           </TouchableOpacity>
         </View>
@@ -176,11 +199,32 @@ const CasinoIndexPage: React.FC = () => {
           <Text style={styles.navLabel}>Promotions</Text>
         </TouchableOpacity>
       </View>
-       {/* User Sidebar */}
+      
+      {/* User Sidebar */}
       <UserSidebar 
         visible={sidebarVisible} 
         onClose={closeSidebar} 
         slideAnim={slideAnim}
+      />
+      
+      {/* Notepad Modal */}
+      <NotePad 
+        visible={notepadVisible}
+        onClose={() => setNotepadVisible(false)}
+      />
+      
+      {/* Add Funds Modal */}
+      <PaymentForm
+        visible={addFundsVisible}
+        onClose={() => setAddFundsVisible(false)}
+        type="add"
+      />
+      
+      {/* Withdraw Modal */}
+      <PaymentForm
+        visible={withdrawVisible}
+        onClose={() => setWithdrawVisible(false)}
+        type="withdraw"
       />
     </SafeAreaView>
   );
