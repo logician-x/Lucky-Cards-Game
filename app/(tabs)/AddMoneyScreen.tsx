@@ -50,9 +50,9 @@ const AddMoneyScreen: React.FC = () => {
       setLoading(true);
       
       // In production, you would get the UPI ID from your backend
-      const merchantUpiId = "merchantid@ybl";
+      const merchantUpiId = "9527020266@ybl";
       const transactionNote = "Add money to wallet";
-      const merchantName = "Casino App";
+      const merchantName = "Surrat_App";
       const orderId = `ORDER${Date.now()}`;
       
       // Create a pending transaction in the wallet service

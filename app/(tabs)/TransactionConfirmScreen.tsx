@@ -108,7 +108,7 @@ const TransactionConfirmScreen: React.FC = () => {
         },
         {
           text: 'Yes',
-          onPress: () => router.replace('/(tabs)'),
+          onPress: () => router.replace('/(tabs)/AddMoneyScreen'),
         },
       ]
     );
