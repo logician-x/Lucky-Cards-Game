@@ -362,7 +362,8 @@ const GameScreen = () => {
             <TimerDisplay 
               phaseTimer={phaseTimer} 
               scaleAnim={scaleAnim} 
-              timerColor={timerColor()} 
+              timerColor={timerColor()}
+              gamePhase={gamePhase} 
               isServerConnected={isConnected}
             />
              
