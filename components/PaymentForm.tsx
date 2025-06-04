@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  Modal, 
-  TouchableOpacity, 
-  TextInput, 
+import 
+{
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  TextInput,
   StyleSheet,
   ActivityIndicator,
   Animated,
@@ -42,11 +43,11 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ visible, onClose, type }) => 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  
+
   // Animation values
   const confettiAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0))[0];
-  
+
   useEffect(() => {
     // Reset form when modal opens
     if (visible) {
@@ -64,25 +65,25 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ visible, onClose, type }) => 
       setErrorMsg('Please enter a valid UPI ID (e.g., username@upi)');
       return;
     }
-    
+
     if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
       setErrorMsg('Please enter a valid amount');
       return;
     }
-    
+
     if (!selectedProvider) {
       setErrorMsg('Please select a payment provider');
       return;
     }
-    
+
     setErrorMsg('');
     setLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);
-      
+
       // Start celebration animation
       Animated.parallel([
         Animated.timing(confettiAnim, {
@@ -97,48 +98,48 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ visible, onClose, type }) => 
           useNativeDriver: true,
         })
       ]).start();
-      
+
       // Close modal after celebration
       setTimeout(() => {
         onClose();
       }, 3000);
     }, 1500);
   };
-  
+
   const getFormTitle = () => {
     return type === 'add' ? 'Add Funds' : 'Withdraw Funds';
   };
-  
+
   const getButtonText = () => {
     return type === 'add' ? 'Add Funds' : 'Withdraw Now';
   };
-  
+
   // Create confetti elements
   const renderConfetti = () => {
     const confetti = [];
     const colors = ['#FF4136', '#2ECC40', '#0074D9', '#FFDC00', '#B10DC9', '#FF851B'];
-    
+
     for (let i = 0; i < 30; i++) {
       const translateY = confettiAnim.interpolate({
         inputRange: [0, 1],
         outputRange: [-20, Math.random() * 200 + 100],
       });
-      
+
       const translateX = confettiAnim.interpolate({
         inputRange: [0, 1],
         outputRange: [0, (Math.random() * 300) - 150],
       });
-      
+
       const rotate = confettiAnim.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', `${Math.random() * 360}deg`],
       });
-      
+
       const opacity = confettiAnim.interpolate({
         inputRange: [0, 0.7, 1],
         outputRange: [1, 1, 0],
       });
-      
+
       confetti.push(
         <Animated.View
           key={i}
@@ -154,7 +155,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ visible, onClose, type }) => 
         />
       );
     }
-    
+
     return confetti;
   };
 
@@ -177,7 +178,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ visible, onClose, type }) => 
               <Text style={{ fontSize: 22, color: '#333' }}>✕</Text>
             </TouchableOpacity>
           </View>
-          
+
           {success ? (
             // Success view with celebration
             <View style={styles.successContainer}>
@@ -193,8 +194,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ visible, onClose, type }) => 
                 <Text style={{ fontSize: 50, color: '#4CAF50' }}>✓</Text>
               </Animated.View>
               <Text style={styles.successText}>
-                {type === 'add' 
-                  ? 'Payment request sent successfully!' 
+                {type === 'add'
+                  ? 'Payment request sent successfully!'
                   : 'Withdrawal initiated successfully!'}
               </Text>
               <Text style={styles.successSubText}>
@@ -216,7 +217,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ visible, onClose, type }) => 
                   onChangeText={setAmount}
                 />
               </View>
-              
+
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>UPI ID</Text>
                 <TextInput
@@ -227,7 +228,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ visible, onClose, type }) => 
                   autoCapitalize="none"
                 />
               </View>
-              
+
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Select Payment Method</Text>
                 <View style={styles.providersContainer}>
@@ -246,9 +247,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ visible, onClose, type }) => 
                   ))}
                 </View>
               </View>
-              
+
               {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
-              
+
               <TouchableOpacity
                 style={[
                   styles.submitButton,

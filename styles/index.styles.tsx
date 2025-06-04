@@ -319,20 +319,22 @@ export const styles = StyleSheet.create({
   },
   
    gameIconImage: {
-    width: 300,
-    height: 200,
-    borderRadius: 16,
-    marginVertical: 15,
-    alignSelf: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8, // for Android shadow
+  width: 300,
+  height: 200,
+  borderRadius: 16,
+  marginVertical: 15,
+  alignSelf: 'center',
+  overflow: 'hidden', // ← THIS IS THE KEY FIX!
+  backgroundColor: 'transparent', // Prevents background conflicts
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 4,
   },
+  shadowOpacity: 0.3,
+  shadowRadius: 5,
+  elevation: 8,
+},
   
   // If you want a container for the game icon with additional styling
   gameIconContainer: {
@@ -374,5 +376,62 @@ export const styles = StyleSheet.create({
   gameIconPressed: {
     opacity: 0.8,
     transform: [{scale: 0.98}],
-  }
+  },
+  gameIconImageWithBorder: {
+  width: 300,
+  height: 200,
+  borderRadius: 16,
+  borderWidth: 3,
+  borderColor: '#FFD700', // Gold border
+  marginVertical: 15,
+  alignSelf: 'center',
+  overflow: 'hidden', // Critical!
+  backgroundColor: 'transparent',
+  shadowColor: '#FFD700',
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.4,
+  shadowRadius: 6,
+  elevation: 10,
+},
+gameIconImageDiamond: {
+  width: 220,
+  height: 220,
+  alignSelf: 'center',
+  marginVertical: 30, // Extra margin for rotated shape
+  transform: [{ rotate: '45deg' }], // Rotate container 45 degrees
+  borderRadius: 20, // Rounded corners for softer diamond
+  borderWidth: 4,
+  borderColor: '#FFD700', // Gold border
+  overflow: 'hidden', // Essential for clipping
+  backgroundColor: 'transparent',
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 6,
+  },
+  shadowOpacity: 0.4,
+  shadowRadius: 8,
+  elevation: 12,
+},
+hotTagFixed: {
+  position: 'absolute',
+  top: -5,
+  right: '8%',
+  backgroundColor: '#FF4500',
+  paddingHorizontal: 12,
+  paddingVertical: 6,
+  borderRadius: 15,
+  zIndex: 10,
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.3,
+  shadowRadius: 3,
+  elevation: 5,
+}
 });

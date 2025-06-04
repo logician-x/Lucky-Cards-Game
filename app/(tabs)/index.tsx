@@ -158,22 +158,21 @@ const CasinoIndexPage: React.FC = () => {
         <ScrollView contentContainerStyle={styles.mainContent}>
           {/* Logo/Featured Game */}
           <TouchableOpacity
-            onPress={handleStart}
-            activeOpacity={0.9}
-          >
-            <View>
-              <View style={styles.hotTag}>
-                <Text style={styles.hotTagText}>HOT 🔥</Text>
-              </View>
-
-              {/* Game image as logo */}
-              <Image
-                source={require('../../assets/background.png')}
-                style={styles.gameIconImage}
-                resizeMode="contain"
-              />
-            </View>
-          </TouchableOpacity>
+        onPress={handleStart}
+        activeOpacity={0.9}
+        >
+      <View style={{position: 'relative'}}>
+       <View style={styles.hotTagFixed}>
+      <Text style={styles.hotTagText}>HOT 🔥</Text>
+       </View>
+    
+      <Image
+      source={require('../../assets/background.png')}
+      style={styles.gameIconImage} // Your existing style but with overflow: 'hidden' added
+      resizeMode="cover"
+       />
+     </View>
+    </TouchableOpacity>
         </ScrollView>      
       </View>
       
