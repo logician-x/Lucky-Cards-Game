@@ -55,7 +55,11 @@ const CasinoIndexPage: React.FC = () => {
       easing: Easing.out(Easing.cubic),
     }).start();
   };
-
+  
+  const handleAdd=()=>
+  {
+    router.push('/(tabs)/AddMoneyScreen');
+  }
   // Close sidebar animation
   const closeSidebar = () => {
     Animated.timing(slideAnim, {
@@ -122,7 +126,7 @@ const CasinoIndexPage: React.FC = () => {
           <TouchableOpacity 
             style={[styles.actionButton, {backgroundColor: '#4CAF50'}]}
             activeOpacity={0.7}
-            onPress={openAddFunds}
+            onPress={handleAdd}
           >
             <Text style={styles.buttonText}>Add</Text>
           </TouchableOpacity>

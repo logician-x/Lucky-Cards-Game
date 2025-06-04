@@ -141,9 +141,11 @@ const GameScreen = () => {
             const winnings = bets[randIndex] * 10;
             
             // Update wallet with animation
-            setWalletBalance(prev => prev + winnings);
-            animateCoinsToWallet();
-            setIsWinner(true);
+           
+          animateCoinsToWallet();
+          setIsWinner(true);
+          setWalletBalance(prev => prev + winnings);
+            
           } else {
             setIsWinner(userPlacedAnyBets ? false : null);
           }
@@ -360,7 +362,8 @@ const GameScreen = () => {
             <TimerDisplay 
               phaseTimer={phaseTimer} 
               scaleAnim={scaleAnim} 
-              timerColor={timerColor()} 
+              timerColor={timerColor()}
+              gamePhase={gamePhase} 
               isServerConnected={isConnected}
             />
              

@@ -4,6 +4,7 @@ export const SERVER_CONFIG = {
   BASE_URL: 'http://192.168.34.145:3001',
   
   // Shorter timeout for local connections (milliseconds)
+  
   CONNECTION_TIMEOUT: 3000,
   
   // Enable local fallback for smoother experience
