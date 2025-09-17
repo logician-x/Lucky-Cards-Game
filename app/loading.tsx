@@ -22,8 +22,8 @@ export default function LoadingScreen() {
     >
       {/* You would replace this with your actual logo */}
       <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>BetMaster</Text>
-        <Text style={styles.tagline}>Your Ultimate Betting Companion</Text>
+        <Text style={styles.logoText}>Cards Game</Text>
+        <Text style={styles.tagline}>Your Ultimate Cards Game</Text>
       </View>
       
       <View style={styles.loadingContainer}>
@@ -31,7 +31,7 @@ export default function LoadingScreen() {
         <Text style={styles.loadingText}>Preparing your odds...</Text>
       </View>
       
-      <Text style={styles.footerText}>Get ready to win big!</Text>
+      <Text style={styles.footerText}>Enjoy your game!</Text>
     </LinearGradient>
   );
 }

@@ -64,14 +64,14 @@ const GameScreen = () => {
   const { scaleAnim, winnerScale, confettiOpacity, resetFade } = animations;
   
 
-  if (isLoading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Connecting to server...</p>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="loading-container">
+  //       <div className="spinner"></div>
+  //       <p>Connecting to server...</p>
+  //     </div>
+  //   );
+  // }
   // Initialize all bets structure
   useEffect(() => {
     const initialAllBets = {};
@@ -92,7 +92,7 @@ const GameScreen = () => {
     console.log('Phase changed to:', phase);
     
     if (phase === PHASES.BETTING) {
-      // Reset state for new betting round
+      // Reset state for new Selection round
       hasHandledResultRef.current = false;
       setShowResultText(false);
       setIsWinner(null);
@@ -106,7 +106,7 @@ const GameScreen = () => {
       }
     } 
     else if (phase === PHASES.RESULT) {
-      // Lock betting immediately when result phase starts
+      // Lock selecting immediately when result phase starts
       setBetLocked(true);
     }
     else if (phase === PHASES.RESET) {
@@ -167,7 +167,7 @@ const GameScreen = () => {
     }
   }, [bets, winnerScale, confettiOpacity]);
 
-  // Initialize server-synchronized game timer hook
+ // Initialize server-synchronized game timer hook
   const { gamePhase, phaseTimer, timerColor,isConnected, isLoading } = useServerGameTimer(
     handlePhaseChange,
     determineWinnerHandler
@@ -215,9 +215,9 @@ const GameScreen = () => {
 
   // Place bet with validation and improved UX
   const placeBet = useCallback((index) => {
-    // Validate phase and prevent locked betting
+    // Validate phase and prevent locked selecting
     if (gamePhase !== PHASES.BETTING || betLocked) {
-      Alert.alert("Betting Closed", "Betting is only allowed during the betting phase.");
+      Alert.alert("selection Closed", "selection is only allowed during the Selecting phase.");
       return;
     }
     
@@ -265,7 +265,7 @@ const GameScreen = () => {
   const clearAllBets = useCallback(() => {
     // Validate phase
     if (gamePhase !== PHASES.BETTING || betLocked) {
-      Alert.alert("Betting Closed", "You can only clear bets during the betting phase.");
+      Alert.alert("selectiong Closed", "You can only clear bets during the selection phase.");
       return;
     }
     
